@@ -1,7 +1,6 @@
-package com.darach.openlibrary.core.ui.components
+package com.darach.openlibrarybooks.core.designsystem.component
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +11,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.tooling.preview.Preview
-import com.darach.openlibrarybooks.core.designsystem.theme.*
+import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
+import com.darach.openlibrarybooks.core.designsystem.theme.darkGreen
+import com.darach.openlibrarybooks.core.designsystem.theme.lightGreenAccent
+import com.darach.openlibrarybooks.core.designsystem.theme.midGreen
+import kotlin.random.Random
 
 // Pattern constants
 private const val GRID_PADDING = 4
@@ -24,6 +27,9 @@ private const val GRID_PADDING = 4
  * to produce a faceted texture effect. The pattern adapts to light/dark themes
  * and optionally supports dynamic color theming. Includes a primary color overlay
  * at 75% opacity.
+ *
+ * The pattern is stable and won't randomise on recomposition - uses a fixed seed
+ * for consistent pattern generation.
  *
  * @param modifier Modifier to be applied to the pattern
  * @param triangleSize Size of each triangle's base/height in dp
@@ -42,42 +48,46 @@ fun TriangularPattern(modifier: Modifier = Modifier, triangleSize: Float = 280f,
         getGreenPatternColors(isDarkTheme)
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val width = size.width
-            val height = size.height
+    // Capture the overlay color outside Canvas since MaterialTheme can't be accessed inside
+    val overlayColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)
 
-            // Calculate how many triangles fit in width and height
-            val cols = (width / triangleSize).toInt() + GRID_PADDING
-            val rows = (height / triangleSize).toInt() + GRID_PADDING
+    Canvas(modifier = modifier) {
+        val width = size.width
+        val height = size.height
 
-            // Draw triangular pattern
-            for (row in 0 until rows) {
-                for (col in 0 until cols) {
-                    val x = col * triangleSize
-                    val y = row * triangleSize
+        // Calculate how many triangles fit in width and height
+        val cols = (width / triangleSize).toInt() + GRID_PADDING
+        val rows = (height / triangleSize).toInt() + GRID_PADDING
 
-                    // Use random colors from the palette
-                    val color = colors.random()
-                    val secondColor = colors.random()
+        // Draw triangular pattern
+        for (row in 0 until rows) {
+            for (col in 0 until cols) {
+                val x = col * triangleSize
+                val y = row * triangleSize
 
-                    // Draw two triangles per cell
-                    if ((row + col) % 2 == 0) {
-                        drawTopLeftTriangle(x, y, triangleSize, color)
-                        drawBottomRightTriangle(x, y, triangleSize, secondColor)
-                    } else {
-                        drawTopRightTriangle(x, y, triangleSize, color)
-                        drawBottomLeftTriangle(x, y, triangleSize, secondColor)
-                    }
+                // Use stable random colors from the palette based on row/col position
+                // Reset random seed for each position to ensure stability
+                val positionSeed = row * 1000 + col
+                val positionRandom = Random(positionSeed)
+
+                val color = colors[positionRandom.nextInt(colors.size)]
+                val secondColor = colors[positionRandom.nextInt(colors.size)]
+
+                // Draw two triangles per cell
+                if ((row + col) % 2 == 0) {
+                    drawTopLeftTriangle(x, y, triangleSize, color)
+                    drawBottomRightTriangle(x, y, triangleSize, secondColor)
+                } else {
+                    drawTopRightTriangle(x, y, triangleSize, color)
+                    drawBottomLeftTriangle(x, y, triangleSize, secondColor)
                 }
             }
         }
 
-        // Overlay with primary color at 50% opacity
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)),
+        // Draw overlay with primary color at 75% opacity
+        drawRect(
+            color = overlayColor,
+            size = size,
         )
     }
 }
@@ -87,22 +97,20 @@ fun TriangularPattern(modifier: Modifier = Modifier, triangleSize: Float = 280f,
  * Only uses medium to dark greens to match the design image
  */
 @Composable
-private fun getGreenPatternColors(isDarkTheme: Boolean): List<Color> {
-    return if (isDarkTheme) {
-        // Darker, more muted greens for dark theme
-        listOf(
-            darkGreen.copy(alpha = 0.6f),
-            midGreen.copy(alpha = 0.4f),
-            lightGreenAccent.copy(alpha = 0.3f),
-        )
-    } else {
-        // Full saturation greens for light theme - only medium to dark tones
-        listOf(
-            darkGreen,
-            midGreen,
-            lightGreenAccent,
-        )
-    }
+private fun getGreenPatternColors(isDarkTheme: Boolean): List<Color> = if (isDarkTheme) {
+    // Darker, more muted greens for dark theme
+    listOf(
+        darkGreen.copy(alpha = 0.6f),
+        midGreen.copy(alpha = 0.4f),
+        lightGreenAccent.copy(alpha = 0.3f),
+    )
+} else {
+    // Full saturation greens for light theme - only medium to dark tones
+    listOf(
+        darkGreen,
+        midGreen,
+        lightGreenAccent,
+    )
 }
 
 /**

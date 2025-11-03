@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
@@ -25,8 +26,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.rounded.SwapVert
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -62,6 +63,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -79,6 +81,7 @@ import com.darach.openlibrarybooks.core.designsystem.component.EmptyStateType
 import com.darach.openlibrarybooks.core.designsystem.component.ErrorState
 import com.darach.openlibrarybooks.core.designsystem.component.ErrorType
 import com.darach.openlibrarybooks.core.designsystem.component.OfflineIndicator
+import com.darach.openlibrarybooks.core.designsystem.component.TriangularPattern
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
 import com.darach.openlibrarybooks.core.designsystem.theme.goldOchre
 import com.darach.openlibrarybooks.core.designsystem.theme.primaryLight
@@ -356,6 +359,7 @@ private fun BooksStateContent(
  * Displays the app title with filter and sort action buttons.
  * Shows a badge on the filter button when filters are active.
  * Includes a multi-select segmented button for reading status filtering.
+ * Uses TriangularPattern as background with white/light content for visibility.
  */
 @ExperimentalMaterial3Api
 @Composable
@@ -367,109 +371,170 @@ private fun BooksTopAppBar(
     modifier: Modifier = Modifier,
 ) {
     // Calculate active filter count (excluding reading status which is now in the top bar)
-    val activeFilterCount = buildList {
-        if (filterOptions.yearFrom != null || filterOptions.yearTo != null) add(1)
-        if (filterOptions.authors.isNotEmpty()) add(1)
-        if (filterOptions.subjects.isNotEmpty()) add(1)
-    }.size
+    val activeFilterCount = calculateActiveFilterCount(filterOptions)
 
-    Column(modifier = modifier) {
-        TopAppBar(
-            title = {
-                Text(
-                    text = "Books",
-                    style = MaterialTheme.typography.headlineMedium,
-                )
-            },
-            actions = {
-                // Filter button with badge
-                IconButton(onClick = onFilterClick) {
-                    BadgedBox(
-                        badge = {
-                            if (activeFilterCount > 0) {
-                                Badge {
-                                    Text(text = activeFilterCount.toString())
-                                }
-                            }
-                        },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.FilterList,
-                            contentDescription = "Filter books",
-                        )
-                    }
-                }
+    // Determine content color and theme properties
+    val isDarkTheme = isSystemInDarkTheme()
+    val contentColor = if (isDarkTheme) Color.White.copy(alpha = 0.95f) else Color.White
+    val isUsingStaticColors = MaterialTheme.colorScheme.primary == primaryLight
 
-                // Sort button
-                IconButton(onClick = onSortClick) {
-                    Icon(
-                        imageVector = Icons.Default.Sort,
-                        contentDescription = "Sort books",
-                    )
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                titleContentColor = MaterialTheme.colorScheme.onSurface,
-            ),
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clipToBounds(),
+    ) {
+        // Triangular pattern background
+        TriangularPattern(
+            modifier = Modifier.matchParentSize(),
+            triangleSize = 120f,
+            useDynamicColor = !isUsingStaticColors,
         )
 
-        // Reading Status Single-Select Connected Button Group
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-        ) {
-            val options = listOf(
-                "Want to Read" to ReadingStatus.WantToRead,
-                "Reading" to ReadingStatus.CurrentlyReading,
-                "Finished" to ReadingStatus.AlreadyRead,
+        // Top app bar content overlay with tabs
+        Column(modifier = Modifier.fillMaxWidth()) {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Open Library",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = contentColor,
+                    )
+                },
+                actions = {
+                    TopAppBarActions(
+                        onFilterClick = onFilterClick,
+                        onSortClick = onSortClick,
+                        activeFilterCount = activeFilterCount,
+                        contentColor = contentColor,
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = contentColor,
+                ),
             )
 
-            // Determine which index is selected based on current filter
-            val selectedIndex = when {
-                ReadingStatus.WantToRead in filterOptions.readingStatuses -> 0
-                ReadingStatus.CurrentlyReading in filterOptions.readingStatuses -> 1
-                ReadingStatus.AlreadyRead in filterOptions.readingStatuses -> 2
-                else -> 0 // Default to "Want to Read" if none selected
+            // Reading Status Tabs inside the app bar
+            ReadingStatusTabs(
+                filterOptions = filterOptions,
+                onReadingStatusChange = onReadingStatusChange,
+                shouldUseGoldOchre = !isDarkTheme && isUsingStaticColors,
+            )
+        }
+    }
+}
+
+/**
+ * Calculate the number of active filters (excluding reading status).
+ */
+private fun calculateActiveFilterCount(filterOptions: FilterOptions): Int = buildList {
+    if (filterOptions.yearFrom != null || filterOptions.yearTo != null) add(1)
+    if (filterOptions.authors.isNotEmpty()) add(1)
+    if (filterOptions.subjects.isNotEmpty()) add(1)
+}.size
+
+/**
+ * Top app bar action buttons (filter and sort).
+ */
+@Composable
+private fun TopAppBarActions(
+    onFilterClick: () -> Unit,
+    onSortClick: () -> Unit,
+    activeFilterCount: Int,
+    contentColor: Color,
+) {
+    Row {
+        // Filter button with badge
+        IconButton(onClick = onFilterClick) {
+            BadgedBox(
+                badge = {
+                    if (activeFilterCount > 0) {
+                        Badge(
+                            containerColor = Color.White,
+                            contentColor = MaterialTheme.colorScheme.primary,
+                        ) {
+                            Text(text = activeFilterCount.toString())
+                        }
+                    }
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Tune,
+                    contentDescription = "Filter books",
+                    tint = contentColor,
+                )
             }
+        }
 
-            // Only use goldOchre for light theme with static colours (not dynamic)
-            val isDarkTheme = isSystemInDarkTheme()
-            val isUsingStaticColors = MaterialTheme.colorScheme.primary == primaryLight
-            val shouldUseGoldOchre = !isDarkTheme && isUsingStaticColors
+        // Sort button
+        IconButton(onClick = onSortClick) {
+            Icon(
+                imageVector = Icons.Rounded.SwapVert,
+                contentDescription = "Sort books",
+                tint = contentColor,
+            )
+        }
+    }
+}
 
-            options.forEachIndexed { index, (label, status) ->
-                ToggleButton(
-                    checked = index == selectedIndex,
-                    onCheckedChange = {
-                        val newStatuses = setOf(status)
-                        onReadingStatusChange(newStatuses)
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .semantics { role = Role.RadioButton },
-                    shapes = when (index) {
-                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                    },
-                    colors = if (shouldUseGoldOchre) {
-                        ToggleButtonDefaults.toggleButtonColors(
-                            checkedContainerColor = goldOchre,
-                            checkedContentColor = Color.Black,
-                        )
-                    } else {
-                        ToggleButtonDefaults.toggleButtonColors()
-                    },
-                ) {
-                    Text(
-                        text = label,
-                        maxLines = 1,
-                        style = MaterialTheme.typography.labelMedium,
+/**
+ * Reading status toggle button group.
+ */
+@Composable
+private fun ReadingStatusTabs(
+    filterOptions: FilterOptions,
+    onReadingStatusChange: (Set<ReadingStatus>) -> Unit,
+    shouldUseGoldOchre: Boolean,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+    ) {
+        val options = listOf(
+            "Want to Read" to ReadingStatus.WantToRead,
+            "Reading" to ReadingStatus.CurrentlyReading,
+            "Finished" to ReadingStatus.AlreadyRead,
+        )
+
+        // Determine which index is selected based on current filter
+        val selectedIndex = when {
+            ReadingStatus.WantToRead in filterOptions.readingStatuses -> 0
+            ReadingStatus.CurrentlyReading in filterOptions.readingStatuses -> 1
+            ReadingStatus.AlreadyRead in filterOptions.readingStatuses -> 2
+            else -> 0 // Default to "Want to Read" if none selected
+        }
+
+        options.forEachIndexed { index, (label, status) ->
+            ToggleButton(
+                checked = index == selectedIndex,
+                onCheckedChange = {
+                    val newStatuses = setOf(status)
+                    onReadingStatusChange(newStatuses)
+                },
+                modifier = Modifier
+                    .weight(1f).padding(bottom = 8.dp)
+                    .semantics { role = Role.RadioButton },
+                shapes = when (index) {
+                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                },
+                colors = if (shouldUseGoldOchre) {
+                    ToggleButtonDefaults.toggleButtonColors(
+                        checkedContainerColor = goldOchre,
+                        checkedContentColor = Color.Black,
                     )
-                }
+                } else {
+                    ToggleButtonDefaults.toggleButtonColors()
+                },
+            ) {
+                Text(
+                    text = label,
+                    maxLines = 1,
+                    style = MaterialTheme.typography.labelMedium,
+                )
             }
         }
     }
