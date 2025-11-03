@@ -15,6 +15,7 @@ android {
 
 dependencies {
     implementation(project(":core:common"))
+    implementation(project(":core:domain"))
 
     // Compose Material 3
     implementation(libs.androidx.compose.material.icons.extended)
