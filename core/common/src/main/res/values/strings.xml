@@ -1,0 +1,9 @@
+<resources>
+    <!-- Error Messages -->
+    <string name="error_no_internet">No internet connection. Please check your network settings and try again.</string>
+    <string name="error_timeout">Request timed out. Please try again.</string>
+    <string name="error_not_found">Resource not found.</string>
+    <string name="error_invalid_request">Invalid request. Please try again.</string>
+    <string name="error_server_unavailable">Server unavailable. Please try again later.</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+</resources>

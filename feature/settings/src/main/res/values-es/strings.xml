@@ -1,0 +1,9 @@
+<resources>
+    <!-- Settings Screen -->
+    <string name="username">Nombre de usuario</string>
+    <string name="change_username_prompt">Ingresa tu nombre de usuario de Open Library. Verificaremos si existe antes de guardarlo.</string>
+    <string name="clear_cache_title">¿Borrar caché?</string>
+    <string name="clear_cache_warning">Esto eliminará todos los datos almacenados localmente, incluyendo:</string>
+    <string name="clear_cache_items">• Todos los libros en caché\n• Todos los favoritos\n• Preferencias de filtro y ordenamiento</string>
+    <string name="clear_cache_info">La aplicación sincronizará automáticamente datos nuevos de Open Library después de borrar.</string>
+</resources>

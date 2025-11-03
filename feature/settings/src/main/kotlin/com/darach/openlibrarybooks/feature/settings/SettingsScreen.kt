@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions") // Multiple screens and dialogs in one file
+
 package com.darach.openlibrarybooks.feature.settings
 
 import android.os.Build
@@ -5,12 +7,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -56,14 +61,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.darach.openlibrarybooks.core.common.util.NetworkConnectivity
+import com.darach.openlibrarybooks.core.designsystem.component.OfflineIndicator
 import com.darach.openlibrarybooks.core.designsystem.component.TriangularPattern
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
 import com.darach.openlibrarybooks.core.domain.model.Settings
+import com.darach.openlibrarybooks.feature.settings.R
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
+
+/**
+ * Entry point for accessing NetworkConnectivity in SettingsScreen.
+ */
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface SettingsScreenEntryPoint {
+    fun networkConnectivity(): NetworkConnectivity
+}
 
 /**
  * Settings screen - allows users to customise app preferences.
@@ -84,6 +106,19 @@ fun SettingsScreen(modifier: Modifier = Modifier, viewModel: SettingsViewModel =
     val isClearingCache by viewModel.isClearingCache.collectAsStateWithLifecycle()
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
 
+    // Get NetworkConnectivity using Hilt EntryPoint
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val networkConnectivity = androidx.compose.runtime.remember {
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            SettingsScreenEntryPoint::class.java,
+        ).networkConnectivity()
+    }
+
+    // Observe network connectivity
+    val isOnline by networkConnectivity.observeConnectivity()
+        .collectAsStateWithLifecycle(initialValue = true)
+
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Show error messages in Snackbar
@@ -96,6 +131,7 @@ fun SettingsScreen(modifier: Modifier = Modifier, viewModel: SettingsViewModel =
 
     SettingsScreenContent(
         modifier = modifier,
+        isOffline = !isOnline,
         state = SettingsScreenState(
             settings = settings,
             validationState = validationState,
@@ -145,46 +181,58 @@ data class SettingsScreenActions(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+private fun SettingsTopBar(isOffline: Boolean, modifier: Modifier = Modifier) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        // Offline indicator at the top
+        OfflineIndicator(
+            isOffline = isOffline,
+            modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
+        )
+
+        // Top bar with triangular pattern
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clipToBounds(),
+        ) {
+            // Triangular pattern background with neutral colors
+            val neutralPatternColors = listOf(
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+            )
+
+            TriangularPattern(
+                modifier = Modifier.matchParentSize(),
+                triangleSize = 120f,
+                customColors = neutralPatternColors,
+            )
+
+            // TopAppBar with transparent background
+            TopAppBar(
+                title = { Text("Settings") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                ),
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 internal fun SettingsScreenContent(
     state: SettingsScreenState,
     actions: SettingsScreenActions,
+    isOffline: Boolean,
     modifier: Modifier = Modifier,
 ) {
     var showUsernameDialog by rememberSaveable { mutableStateOf(false) }
 
-    // Neutral color palette for triangular pattern that adapts to light/dark theme
-    // Uses surface colors with varying alpha for subtle pattern effect
-    val neutralPatternColors = listOf(
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
-    )
-
     Scaffold(
         modifier = modifier,
-        topBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clipToBounds(),
-            ) {
-                // Triangular pattern background with neutral colors
-                TriangularPattern(
-                    modifier = Modifier.matchParentSize(),
-                    triangleSize = 120f,
-                    customColors = neutralPatternColors,
-                )
-
-                // TopAppBar with transparent background
-                TopAppBar(
-                    title = { Text("Settings") },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    ),
-                )
-            }
-        },
+        topBar = { SettingsTopBar(isOffline = isOffline) },
         snackbarHost = { SnackbarHost(state.snackbarHostState) },
     ) { paddingValues ->
         SettingsListContent(
@@ -491,14 +539,14 @@ private fun UsernameDialogContent(
     val keyboardController = LocalSoftwareKeyboardController.current
     Column {
         Text(
-            text = "Enter your Open Library username. We'll check if it exists before saving.",
+            text = stringResource(R.string.change_username_prompt),
             style = MaterialTheme.typography.bodyMedium,
         )
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             value = username,
             onValueChange = onUsernameChange,
-            label = { Text("Username") },
+            label = { Text(stringResource(R.string.username)) },
             singleLine = true,
             enabled = validationState !is UsernameValidationState.Validating,
             isError = validationState is UsernameValidationState.Invalid,
@@ -551,25 +599,25 @@ private fun ClearCacheDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                 modifier = Modifier.size(48.dp),
             )
         },
-        title = { Text("Clear cache?") },
+        title = { Text(stringResource(R.string.clear_cache_title)) },
         text = {
             Column {
                 Text(
-                    text = "This will remove all locally stored data including:",
+                    text = stringResource(R.string.clear_cache_warning),
                     style = MaterialTheme.typography.bodyMedium,
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "• All cached books\n• All favourites\n• Filter and sort preferences",
+                    text = stringResource(R.string.clear_cache_items),
                     style = MaterialTheme.typography.bodyMedium,
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "The app will automatically sync fresh data from Open Library after clearing.",
+                    text = stringResource(R.string.clear_cache_info),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -625,6 +673,7 @@ private fun SettingsScreenPreview() {
                 onClearCache = {},
                 formatLastSyncTimestamp = { "3 hours ago" },
             ),
+            isOffline = false,
         )
     }
 }

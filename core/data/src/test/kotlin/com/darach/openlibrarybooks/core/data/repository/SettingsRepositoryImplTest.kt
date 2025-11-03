@@ -42,6 +42,7 @@ class SettingsRepositoryImplTest {
     private lateinit var repository: SettingsRepositoryImpl
     private lateinit var testDataStore: DataStore<Preferences>
     private lateinit var mockApi: OpenLibraryApi
+    private lateinit var mockNetworkConnectivity: com.darach.openlibrarybooks.core.common.util.NetworkConnectivity
 
     @Before
     fun setup() {
@@ -57,7 +58,8 @@ class SettingsRepositoryImplTest {
         }
 
         mockApi = mockk()
-        repository = SettingsRepositoryImpl(testDataStore, mockApi)
+        mockNetworkConnectivity = mockk(relaxed = true)
+        repository = SettingsRepositoryImpl(testDataStore, mockApi, mockNetworkConnectivity)
     }
 
     @After
@@ -343,7 +345,7 @@ class SettingsRepositoryImplTest {
         repository.updateUsername(username).test().await()
 
         // When - Create new repository instance with same DataStore
-        val newRepository = SettingsRepositoryImpl(testDataStore, mockApi)
+        val newRepository = SettingsRepositoryImpl(testDataStore, mockApi, mockNetworkConnectivity)
 
         // Then - Settings should still be available
         val settings = newRepository.getSettings().first()

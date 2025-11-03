@@ -1,0 +1,24 @@
+<resources>
+    <!-- Books Screen -->
+    <string name="open_library">Open Library</string>
+    <string name="filter_books">Filter books</string>
+    <string name="sort_books">Sort books</string>
+    <string name="publication_year">Publication Year</string>
+    <string name="year_range">%1$d - %2$d</string>
+    <string name="filter_books_title">Filter Books</string>
+    <string name="authors">Authors</string>
+    <string name="subjects">Subjects</string>
+    <string name="sort_by">Sort By</string>
+    <string name="selected">Selected</string>
+
+    <!-- Book Details -->
+    <string name="published">Published:</string>
+    <string name="edition_singular">edition</string>
+    <string name="edition_plural">editions</string>
+    <string name="read_more">Read more</string>
+    <string name="read_less">Read less</string>
+    <string name="book_cover">Cover for %1$s</string>
+    <string name="error_occurred">An error occurred</string>
+    <string name="close">Close</string>
+    <string name="about">About</string>
+</resources>

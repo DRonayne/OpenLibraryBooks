@@ -1,0 +1,5 @@
+<resources>
+    <!-- Favourites Screen -->
+    <string name="no_favourites">No favourites yet. Mark books as favourites from your library and they\'ll appear here.</string>
+    <string name="loading_favourites">Loading favourites…</string>
+</resources>

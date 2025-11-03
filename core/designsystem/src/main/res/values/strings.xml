@@ -1,0 +1,19 @@
+<resources>
+    <!-- Common UI Strings -->
+    <string name="retry">Retry</string>
+
+    <!-- Content Descriptions -->
+    <string name="error_icon">Error icon</string>
+    <string name="empty_state_icon">Empty state icon</string>
+
+    <!-- Error Messages (for convenience functions) -->
+    <string name="error_no_internet">No internet connection. Please check your network settings and try again.</string>
+    <string name="error_timeout">Request timed out. Please try again.</string>
+    <string name="error_server_unavailable">Server unavailable. Please try again later.</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+
+    <!-- Empty State Messages (for convenience functions) -->
+    <string name="no_books_found">No books found. Try adjusting your filters or search.</string>
+    <string name="library_empty">Your library is empty. Start adding books to get started!</string>
+    <string name="no_favourite_books">No favourite books yet. Mark books as favourites to see them here.</string>
+</resources>

@@ -36,6 +36,7 @@ class BooksRepositoryImplTest {
     private lateinit var repository: BooksRepositoryImpl
     private lateinit var mockApi: OpenLibraryApi
     private lateinit var mockBookDao: BookDao
+    private lateinit var mockNetworkConnectivity: com.darach.openlibrarybooks.core.common.util.NetworkConnectivity
 
     @Before
     fun setup() {
@@ -46,7 +47,8 @@ class BooksRepositoryImplTest {
 
         mockApi = mockk()
         mockBookDao = mockk()
-        repository = BooksRepositoryImpl(mockApi, mockBookDao)
+        mockNetworkConnectivity = mockk(relaxed = true)
+        repository = BooksRepositoryImpl(mockApi, mockBookDao, mockNetworkConnectivity)
     }
 
     @After

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -26,9 +27,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.darach.openlibrarybooks.core.designsystem.R
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
 import kotlinx.coroutines.delay
 
@@ -77,10 +80,11 @@ fun ErrorState(
             Icon(
                 imageVector = when (errorType) {
                     ErrorType.NETWORK -> Icons.Default.WifiOff
+                    ErrorType.TIMEOUT -> Icons.Default.HourglassEmpty
                     ErrorType.SERVER -> Icons.Default.CloudOff
                     ErrorType.GENERIC -> Icons.Default.ErrorOutline
                 },
-                contentDescription = "Error icon",
+                contentDescription = stringResource(R.string.error_icon),
                 modifier = Modifier.size(72.dp),
                 tint = MaterialTheme.colorScheme.error,
             )
@@ -102,7 +106,7 @@ fun ErrorState(
                 Button(
                     onClick = onRetry,
                 ) {
-                    Text("Retry")
+                    Text(stringResource(R.string.retry))
                 }
             }
         }
@@ -124,6 +128,11 @@ enum class ErrorType {
     NETWORK,
 
     /**
+     * Timeout error (request took too long)
+     */
+    TIMEOUT,
+
+    /**
      * Server/API error (service unavailable)
      */
     SERVER,
@@ -138,9 +147,25 @@ enum class ErrorType {
 @Composable
 fun NetworkErrorState(onRetry: () -> Unit, modifier: Modifier = Modifier) {
     ErrorState(
-        message = "No internet connection. Please check your network settings and try again.",
+        message = stringResource(R.string.error_no_internet),
         modifier = modifier,
         errorType = ErrorType.NETWORK,
+        onRetry = onRetry,
+    )
+}
+
+/**
+ * Convenience composable for timeout error state.
+ *
+ * @param onRetry Callback when the retry button is clicked
+ * @param modifier Modifier to be applied to the error state
+ */
+@Composable
+fun TimeoutErrorState(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    ErrorState(
+        message = stringResource(R.string.error_timeout),
+        modifier = modifier,
+        errorType = ErrorType.TIMEOUT,
         onRetry = onRetry,
     )
 }
@@ -154,7 +179,7 @@ fun NetworkErrorState(onRetry: () -> Unit, modifier: Modifier = Modifier) {
 @Composable
 fun ServerErrorState(onRetry: () -> Unit, modifier: Modifier = Modifier) {
     ErrorState(
-        message = "Server unavailable. Please try again later.",
+        message = stringResource(R.string.error_server_unavailable),
         modifier = modifier,
         errorType = ErrorType.SERVER,
         onRetry = onRetry,
@@ -200,6 +225,16 @@ private fun ErrorStateNetworkPreviewLight() {
 private fun ErrorStateServerPreviewDark() {
     OpenLibraryTheme(darkTheme = true, dynamicColor = false) {
         ServerErrorState(
+            onRetry = {},
+        )
+    }
+}
+
+@Preview(name = "Error State - Timeout - Light", showBackground = true)
+@Composable
+private fun ErrorStateTimeoutPreviewLight() {
+    OpenLibraryTheme(darkTheme = false, dynamicColor = false) {
+        TimeoutErrorState(
             onRetry = {},
         )
     }

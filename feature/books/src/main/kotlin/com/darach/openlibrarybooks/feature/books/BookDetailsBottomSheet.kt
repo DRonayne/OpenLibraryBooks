@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,10 +27,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
@@ -48,11 +47,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
@@ -63,6 +63,7 @@ import com.darach.openlibrarybooks.core.designsystem.component.FavoriteFilledIco
 import com.darach.openlibrarybooks.core.designsystem.component.ShimmerBox
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
 import com.darach.openlibrarybooks.core.domain.model.WorkDetails
+import com.darach.openlibrarybooks.feature.books.R
 
 /**
  * Bottom sheet displaying detailed information about a book.
@@ -102,7 +103,6 @@ fun BookDetailsBottomSheet(
                     workDetails = workDetails,
                     isFavourite = isFavourite,
                     onFavouriteToggle = { viewModel.toggleFavourite() },
-                    onClose = onDismiss,
                 )
             }
             is UiState.Error -> {
@@ -121,7 +121,7 @@ fun BookDetailsBottomSheet(
                         .height(400.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("No details available", style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.error_occurred), style = MaterialTheme.typography.bodyLarge)
                 }
             }
         }
@@ -140,128 +140,66 @@ private fun BookDetailsLoadingState() {
             .padding(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        LoadingHeaderPlaceholders()
-        LoadingContentPlaceholders()
-    }
-}
-
-/**
- * Loading placeholders for header section (cover, title, authors, metadata).
- * Two-column layout with cover on left, content on right.
- */
-@Composable
-private fun LoadingHeaderPlaceholders() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        // Cover image placeholder - left side, smaller
-        ShimmerBox(
+        // Header placeholders: cover, title, authors, metadata
+        Row(
             modifier = Modifier
-                .width(120.dp)
-                .height(180.dp)
-                .clip(MaterialTheme.shapes.medium),
-        )
-
-        // Right side content
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .height(180.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Title placeholder
+            // Cover image placeholder
             ShimmerBox(
                 modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .height(28.dp)
-                    .clip(MaterialTheme.shapes.small),
+                    .width(120.dp)
+                    .height(180.dp)
+                    .clip(MaterialTheme.shapes.medium),
             )
 
-            // Authors placeholder
-            ShimmerBox(
+            // Right side content
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .height(18.dp)
-                    .clip(MaterialTheme.shapes.small),
-            )
-
-            // Spacer to push metadata to bottom
-            Box(modifier = Modifier.weight(1f))
-
-            // Metadata chips placeholder
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    .weight(1f)
+                    .height(180.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                repeat(2) {
-                    ShimmerBox(
-                        modifier = Modifier
-                            .width(100.dp)
-                            .height(28.dp)
-                            .clip(MaterialTheme.shapes.small),
-                    )
-                }
-            }
-        }
-    }
-}
-
-/**
- * Loading placeholders for content section (subjects and description).
- */
-@Composable
-private fun LoadingContentPlaceholders() {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        // Subjects section placeholder
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            ShimmerBox(
-                modifier = Modifier
-                    .width(80.dp)
-                    .height(20.dp)
-                    .clip(MaterialTheme.shapes.small),
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                repeat(3) {
-                    ShimmerBox(
-                        modifier = Modifier
-                            .width(70.dp)
-                            .height(32.dp)
-                            .clip(MaterialTheme.shapes.small),
-                    )
+                ShimmerBox(modifier = Modifier.fillMaxWidth(0.9f).height(28.dp).clip(MaterialTheme.shapes.small))
+                ShimmerBox(modifier = Modifier.fillMaxWidth(0.6f).height(18.dp).clip(MaterialTheme.shapes.small))
+                Box(modifier = Modifier.weight(1f))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    repeat(2) {
+                        ShimmerBox(modifier = Modifier.width(100.dp).height(28.dp).clip(MaterialTheme.shapes.small))
+                    }
                 }
             }
         }
 
-        // Description section placeholder
+        // Content placeholders: subjects and description
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            ShimmerBox(
-                modifier = Modifier
-                    .width(60.dp)
-                    .height(20.dp)
-                    .clip(MaterialTheme.shapes.small),
-            )
-            repeat(4) {
-                ShimmerBox(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(16.dp)
-                        .clip(MaterialTheme.shapes.small),
-                )
+            // Subjects
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                ShimmerBox(modifier = Modifier.width(80.dp).height(20.dp).clip(MaterialTheme.shapes.small))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    repeat(3) {
+                        ShimmerBox(modifier = Modifier.width(70.dp).height(32.dp).clip(MaterialTheme.shapes.small))
+                    }
+                }
+            }
+
+            // Description
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                ShimmerBox(modifier = Modifier.width(60.dp).height(20.dp).clip(MaterialTheme.shapes.small))
+                repeat(4) {
+                    ShimmerBox(modifier = Modifier.fillMaxWidth().height(16.dp).clip(MaterialTheme.shapes.small))
+                }
             }
         }
     }
@@ -291,7 +229,7 @@ private fun BookDetailsErrorState(message: String, onRetry: () -> Unit, onClose:
         ) {
             Icon(
                 imageVector = Icons.Filled.Close,
-                contentDescription = "Close",
+                contentDescription = stringResource(R.string.close),
             )
         }
 
@@ -309,11 +247,14 @@ private fun BookDetailsErrorState(message: String, onRetry: () -> Unit, onClose:
 
 /**
  * Header section with cover image, title, authors, and metadata in two-column layout.
+ * Includes favourite button next to the title.
  *
  * @param workDetails Work details to display
+ * @param isFavourite Whether the book is favourited
+ * @param onFavouriteToggle Callback to toggle favourite
  */
 @Composable
-private fun BookHeaderSection(workDetails: WorkDetails) {
+private fun BookHeaderSection(workDetails: WorkDetails, isFavourite: Boolean, onFavouriteToggle: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -329,54 +270,79 @@ private fun BookHeaderSection(workDetails: WorkDetails) {
                 .height(180.dp),
         )
 
-        // Right side: Title, authors, and metadata
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .height(180.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        // Right side: Title with favourite button, authors, and metadata
+        BookHeaderContent(
+            workDetails = workDetails,
+            isFavourite = isFavourite,
+            onFavouriteToggle = onFavouriteToggle,
+        )
+    }
+}
+
+/**
+ * Content section with title, authors, and metadata.
+ */
+@Composable
+private fun RowScope.BookHeaderContent(workDetails: WorkDetails, isFavourite: Boolean, onFavouriteToggle: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .weight(1f)
+            .height(180.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        // Title with favourite button
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top,
         ) {
-            // Title
             Text(
                 text = workDetails.title,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
             )
 
-            // Authors
-            if (workDetails.authors.isNotEmpty()) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Person,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = workDetails.authors.joinToString(", "),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-
-            // Spacer to push metadata to bottom
-            Box(modifier = Modifier.weight(1f))
-
-            // Metadata chips
-            MetadataSection(
-                firstPublishDate = workDetails.firstPublishDate,
-                editionCount = workDetails.coverIds.size,
-                modifier = Modifier.fillMaxWidth(),
+            // Favourite button positioned next to title
+            FavouriteActionButton(
+                isFavourite = isFavourite,
+                onFavouriteToggle = onFavouriteToggle,
             )
         }
+
+        // Authors
+        if (workDetails.authors.isNotEmpty()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = workDetails.authors.joinToString(", "),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+
+        // Spacer to push metadata to bottom
+        Box(modifier = Modifier.weight(1f))
+
+        // Metadata chips
+        MetadataSection(
+            firstPublishDate = workDetails.firstPublishDate,
+            editionCount = workDetails.coverIds.size,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
@@ -387,16 +353,10 @@ private fun BookHeaderSection(workDetails: WorkDetails) {
  * @param workDetails Work details to display
  * @param isFavourite Whether the book is marked as favourite
  * @param onFavouriteToggle Callback to toggle favourite status
- * @param onClose Callback to close the bottom sheet
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun BookDetailsContent(
-    workDetails: WorkDetails,
-    isFavourite: Boolean,
-    onFavouriteToggle: () -> Unit,
-    onClose: () -> Unit,
-) {
+private fun BookDetailsContent(workDetails: WorkDetails, isFavourite: Boolean, onFavouriteToggle: () -> Unit) {
     val scrollState = rememberScrollState()
 
     Box(modifier = Modifier.fillMaxWidth()) {
@@ -407,16 +367,12 @@ private fun BookDetailsContent(
                 .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Action buttons at top right with reduced padding
-            ActionButtons(
+            // Two-column header: cover on left, title/authors/metadata on right, favourite button next to title
+            BookHeaderSection(
+                workDetails = workDetails,
                 isFavourite = isFavourite,
                 onFavouriteToggle = onFavouriteToggle,
-                onClose = onClose,
-                modifier = Modifier
-                    .padding(8.dp),
             )
-            // Two-column header: cover on left, title/authors/metadata on right
-            BookHeaderSection(workDetails = workDetails)
 
             // Subjects
             SubjectsSection(subjects = workDetails.subjects)
@@ -435,45 +391,22 @@ private fun BookDetailsContent(
 }
 
 /**
- * Action buttons for favourite toggle and close.
- * Positioned at the top right with reduced padding (8.dp).
+ * Action button for favourite toggle.
+ * Positioned in the header next to the title.
  * Favourite button includes scale animation on toggle.
  *
  * @param isFavourite Whether the book is favourited
  * @param onFavouriteToggle Callback to toggle favourite
- * @param onClose Callback to close the sheet
  * @param modifier Optional modifier
  */
 @Composable
-private fun ActionButtons(
-    isFavourite: Boolean,
-    onFavouriteToggle: () -> Unit,
-    onClose: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
+private fun FavouriteActionButton(isFavourite: Boolean, onFavouriteToggle: () -> Unit, modifier: Modifier = Modifier) {
+    // Favourite button with scale animation - using extracted component
+    FavoriteFilledIconButton(
+        isFavorite = isFavourite,
+        onToggle = onFavouriteToggle,
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        // Close button
-        FilledIconButton(
-            onClick = onClose,
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            ),
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Close,
-                contentDescription = "Close",
-            )
-        }
-
-        // Favourite button with scale animation - using extracted component
-        FavoriteFilledIconButton(
-            isFavorite = isFavourite,
-            onToggle = onFavouriteToggle,
-        )
-    }
+    )
 }
 
 /**
@@ -498,7 +431,7 @@ private fun MetadataSection(firstPublishDate: String?, editionCount: Int, modifi
                     color = MaterialTheme.colorScheme.secondaryContainer,
                 ) {
                     Text(
-                        text = "Published: $date",
+                        text = stringResource(R.string.published) + " $date",
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -506,7 +439,9 @@ private fun MetadataSection(firstPublishDate: String?, editionCount: Int, modifi
                 }
             }
             if (editionCount > 0) {
-                val editionLabel = "$editionCount edition${if (editionCount != 1) "s" else ""}"
+                val editionLabel = "$editionCount ${stringResource(
+                    if (editionCount != 1) R.string.edition_plural else R.string.edition_singular,
+                )}"
                 Surface(
                     shape = MaterialTheme.shapes.small,
                     color = MaterialTheme.colorScheme.secondaryContainer,
@@ -539,7 +474,7 @@ private fun SubjectsSection(subjects: List<String>) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                text = "Subjects",
+                text = stringResource(R.string.subjects),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -591,7 +526,7 @@ private fun BookCoverSection(coverIds: List<Int>, title: String, modifier: Modif
                 .diskCacheKey(coverUrl) // Disk cache optimisation
                 .placeholderMemoryCacheKey(coverUrl) // Check memory cache first for instant display
                 .build(),
-            contentDescription = "Cover for $title",
+            contentDescription = stringResource(R.string.book_cover, title),
             modifier = modifier.clip(MaterialTheme.shapes.medium),
             contentScale = ContentScale.Crop,
             loading = {
@@ -683,7 +618,7 @@ private fun ExpandableDescription(description: String, modifier: Modifier = Modi
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            text = "About",
+            text = stringResource(R.string.about),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
         )
@@ -712,7 +647,7 @@ private fun ExpandableDescription(description: String, modifier: Modifier = Modi
                 contentPadding = PaddingValues(0.dp),
             ) {
                 Text(
-                    text = if (expanded) "Read less" else "Read more",
+                    text = stringResource(if (expanded) R.string.read_less else R.string.read_more),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
@@ -725,9 +660,9 @@ private fun ExpandableDescription(description: String, modifier: Modifier = Modi
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @Composable
-private fun BookDetailsContentPreview() {
+private fun BookHeaderSectionPreview() {
     OpenLibraryTheme {
-        BookDetailsContent(
+        BookHeaderSection(
             workDetails = WorkDetails(
                 workKey = "/works/OL45804W",
                 title = "The Lord of the Rings",
@@ -741,7 +676,6 @@ private fun BookDetailsContentPreview() {
             ),
             isFavourite = false,
             onFavouriteToggle = {},
-            onClose = {},
         )
     }
 }

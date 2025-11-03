@@ -1,0 +1,9 @@
+<resources>
+    <!-- Messages d'erreur -->
+    <string name="error_no_internet">Pas de connexion Internet. Veuillez vérifier vos paramètres réseau et réessayer.</string>
+    <string name="error_timeout">La demande a expiré. Veuillez réessayer.</string>
+    <string name="error_not_found">Ressource introuvable.</string>
+    <string name="error_invalid_request">Demande non valide. Veuillez réessayer.</string>
+    <string name="error_server_unavailable">Serveur indisponible. Veuillez réessayer plus tard.</string>
+    <string name="error_generic">Quelque chose s\'est mal passé. Veuillez réessayer.</string>
+</resources>

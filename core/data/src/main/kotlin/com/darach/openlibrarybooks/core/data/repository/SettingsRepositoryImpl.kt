@@ -8,6 +8,10 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.darach.openlibrarybooks.core.common.BuildConfig
+import com.darach.openlibrarybooks.core.common.exception.NetworkException
+import com.darach.openlibrarybooks.core.common.exception.toNetworkException
+import com.darach.openlibrarybooks.core.common.util.NetworkConnectivity
 import com.darach.openlibrarybooks.core.domain.model.FilterOptions
 import com.darach.openlibrarybooks.core.domain.model.ReadingStatus
 import com.darach.openlibrarybooks.core.domain.model.Settings
@@ -36,12 +40,16 @@ import javax.inject.Singleton
  *
  * @property dataStore The DataStore instance for preferences
  * @property api The Open Library API for username validation
+ * @property networkConnectivity Utility for checking network connectivity
  */
 @Singleton
 @Suppress("TooManyFunctions")
-class SettingsRepositoryImpl @Inject constructor(
+class SettingsRepositoryImpl
+@Inject
+constructor(
     private val dataStore: DataStore<Preferences>,
     private val api: OpenLibraryApi,
+    private val networkConnectivity: NetworkConnectivity,
 ) : SettingsRepository {
 
     companion object {
@@ -62,9 +70,9 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_FILTER_YEAR_TO = stringPreferencesKey("filter_year_to")
 
         // Default values
-        private const val DEFAULT_USERNAME = ""
+        private val DEFAULT_USERNAME = BuildConfig.DEFAULT_USERNAME
         private const val DEFAULT_DARK_MODE = false
-        private const val DEFAULT_DYNAMIC_THEME = true
+        private const val DEFAULT_DYNAMIC_THEME = false
         private const val DEFAULT_LAST_SYNC = 0L
 
         // Serialisation constants for sort options
@@ -144,6 +152,7 @@ class SettingsRepositoryImpl @Inject constructor(
      *
      * @param username The username to validate
      * @return Single emitting true if valid, false otherwise
+     * @throws NetworkException if validation fails due to network errors
      */
     override fun validateUsername(username: String): Single<Boolean> {
         Log.i(TAG, "Validating username: $username")
@@ -153,9 +162,17 @@ class SettingsRepositoryImpl @Inject constructor(
             .doOnSuccess {
                 Log.i(TAG, "Username validation successful: $username")
             }
-            .onErrorReturn { error ->
-                Log.w(TAG, "Username validation failed for: $username", error)
-                false
+            .onErrorResumeNext { error ->
+                val networkException = error.toNetworkException(networkConnectivity.isConnected())
+                Log.w(TAG, "Username validation failed for: $username", networkException)
+                // For 404, return false (username doesn't exist)
+                // For other errors, propagate the exception
+                val is404 = networkException is NetworkException.ApiException && networkException.statusCode == 404
+                if (is404) {
+                    Single.just(false)
+                } else {
+                    Single.error(networkException)
+                }
             }
     }
 

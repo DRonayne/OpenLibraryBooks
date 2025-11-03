@@ -1,6 +1,8 @@
 package com.darach.openlibrarybooks.core.data.repository
 
 import android.util.Log
+import com.darach.openlibrarybooks.core.common.exception.toNetworkException
+import com.darach.openlibrarybooks.core.common.util.NetworkConnectivity
 import com.darach.openlibrarybooks.core.data.mapper.toBook
 import com.darach.openlibrarybooks.core.data.mapper.toBookEntity
 import com.darach.openlibrarybooks.core.data.mapper.toDomain
@@ -29,10 +31,16 @@ import javax.inject.Singleton
  *
  * @property api The Open Library API service
  * @property bookDao The local database DAO for books
+ * @property networkConnectivity Utility for checking network connectivity
  */
 @Singleton
-class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, private val bookDao: BookDao) :
-    BooksRepository {
+class BooksRepositoryImpl
+@Inject
+constructor(
+    private val api: OpenLibraryApi,
+    private val bookDao: BookDao,
+    private val networkConnectivity: NetworkConnectivity,
+) : BooksRepository {
 
     companion object {
         private const val TAG = "BooksRepositoryImpl"
@@ -56,6 +64,7 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
      *
      * @param username Open Library username
      * @return Single emitting the complete list of fetched books
+     * @throws NetworkException if sync fails
      */
     override fun syncBooks(username: String): Single<List<Book>> {
         Log.i(TAG, "Starting book synchronisation for user: $username")
@@ -76,8 +85,10 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
             .doOnSuccess { books ->
                 Log.i(TAG, "Successfully synchronised ${books.size} books for user: $username")
             }
-            .doOnError { error ->
-                Log.e(TAG, "Error syncing books for user: $username", error)
+            .onErrorResumeNext { error ->
+                val networkException = error.toNetworkException(networkConnectivity.isConnected())
+                Log.e(TAG, "Error syncing books for user: $username", networkException)
+                Single.error(networkException)
             }
     }
 
@@ -91,6 +102,7 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
      * @param shelf Shelf name (want-to-read, currently-reading, already-read)
      * @param status Reading status to assign to books
      * @return Single emitting list of books from the shelf
+     * @throws NetworkException if fetching fails
      */
     private fun fetchShelf(username: String, shelf: String, status: ReadingStatus): Single<List<Book>> {
         Log.d(TAG, "Fetching shelf '$shelf' for user: $username")
@@ -111,9 +123,10 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
                 Log.i(TAG, "Fetched ${books.size} books from shelf '$shelf' for user: $username")
                 books
             }
-            .onErrorReturn { error ->
-                Log.e(TAG, "Error fetching shelf $shelf: ${error.message}")
-                emptyList()
+            .onErrorResumeNext { error ->
+                val networkException = error.toNetworkException(networkConnectivity.isConnected())
+                Log.e(TAG, "Error fetching shelf $shelf: ${networkException.message}")
+                Single.error(networkException)
             }
     }
 
@@ -263,6 +276,7 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
      *
      * @param workKey Open Library work key (e.g., "/works/OL27448W")
      * @return Single emitting the detailed work information
+     * @throws NetworkException if fetching fails
      */
     override fun getWorkDetails(workKey: String): Single<WorkDetails> {
         // Extract key without the "/works/" prefix
@@ -275,8 +289,10 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
             .doOnSuccess { workDetails ->
                 Log.i(TAG, "Successfully fetched work details for key: $workKey (title: ${workDetails.title})")
             }
-            .doOnError { error ->
-                Log.e(TAG, "Error fetching work details for $workKey", error)
+            .onErrorResumeNext { error ->
+                val networkException = error.toNetworkException(networkConnectivity.isConnected())
+                Log.e(TAG, "Error fetching work details for $workKey", networkException)
+                Single.error(networkException)
             }
     }
 
@@ -288,6 +304,7 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
      *
      * @param editionKey Open Library edition key (e.g., "/books/OL7353617M")
      * @return Single emitting the detailed edition information
+     * @throws NetworkException if fetching fails
      */
     override fun getEditionDetails(editionKey: String): Single<EditionDetails> {
         // Extract key without the "/books/" prefix
@@ -300,8 +317,10 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
             .doOnSuccess { editionDetails ->
                 Log.i(TAG, "Successfully fetched edition details for key: $editionKey (title: ${editionDetails.title})")
             }
-            .doOnError { error ->
-                Log.e(TAG, "Error fetching edition details for $editionKey", error)
+            .onErrorResumeNext { error ->
+                val networkException = error.toNetworkException(networkConnectivity.isConnected())
+                Log.e(TAG, "Error fetching edition details for $editionKey", networkException)
+                Single.error(networkException)
             }
     }
 
@@ -309,11 +328,13 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
      * Synchronise all reading list shelves from the API to the local cache.
      *
      * This is the primary sync operation that fetches fresh data and updates
-     * the local database. Follows offline-first strategy by allowing the UI
-     * to continue displaying cached data even if sync fails.
+     * the local database. Follows offline-first strategy by propagating errors
+     * to the UI so it can show appropriate error messages while still
+     * displaying cached data.
      *
      * @param username Open Library username to sync reading lists for
      * @return Completable that completes when sync is finished
+     * @throws NetworkException if sync fails
      */
     override fun sync(username: String): Completable {
         Log.i(TAG, "Starting synchronisation for user: $username")
@@ -322,10 +343,6 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
                 Log.i(TAG, "Synchronisation completed successfully for user: $username")
             }
             .ignoreElement()
-            .onErrorComplete { error ->
-                Log.e(TAG, "Sync failed for user $username, keeping cached data", error)
-                true // Complete anyway to prevent error propagation
-            }
     }
 
     /**

@@ -3,7 +3,11 @@ package com.darach.openlibrarybooks.feature.books
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.darach.openlibrarybooks.core.common.exception.NetworkException
+import com.darach.openlibrarybooks.core.common.exception.toNetworkException
 import com.darach.openlibrarybooks.core.common.ui.UiState
+import com.darach.openlibrarybooks.core.common.ui.toUserMessage
+import com.darach.openlibrarybooks.core.common.util.NetworkConnectivity
 import com.darach.openlibrarybooks.core.domain.model.Book
 import com.darach.openlibrarybooks.core.domain.model.FilterOptions
 import com.darach.openlibrarybooks.core.domain.model.ReadingStatus
@@ -40,11 +44,16 @@ import javax.inject.Inject
  *
  * @property booksRepository Repository for accessing book data
  * @property settingsRepository Repository for accessing user settings
+ * @property networkConnectivity Utility for checking network connectivity
  */
 @HiltViewModel
-class BooksViewModel @Inject constructor(
+class BooksViewModel
+@Inject
+constructor(
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context,
     private val booksRepository: BooksRepository,
     private val settingsRepository: SettingsRepository,
+    private val networkConnectivity: NetworkConnectivity,
 ) : ViewModel() {
 
     private val compositeDisposable = CompositeDisposable()
@@ -354,32 +363,57 @@ class BooksViewModel @Inject constructor(
      * Handles errors from the books flow and converts them to user-friendly messages.
      *
      * Differentiates between network errors, parsing errors, and other exceptions.
+     * Maps exceptions to NetworkException types for consistent error handling.
      *
      * @param throwable The exception that occurred
      * @return User-friendly error message
      */
-    private fun handleError(throwable: Throwable): String = when (throwable) {
-        is java.net.UnknownHostException,
-        is java.net.SocketTimeoutException,
-        -> "No internet connection. Showing cached books."
-        is java.io.IOException -> "Network error. Showing cached books."
-        else -> "Failed to load books: ${throwable.message ?: "Unknown error"}"
+    private fun handleError(throwable: Throwable): String {
+        val networkException = if (throwable is NetworkException) {
+            throwable
+        } else {
+            throwable.toNetworkException(networkConnectivity.isConnected())
+        }
+        return networkException.toUserMessage(context)
     }
 
     /**
      * Handles errors from refresh operations and converts them to user-friendly messages.
      *
      * These errors are shown in snackbars, while keeping the existing book data visible.
+     * Maps exceptions to NetworkException types for consistent error handling.
      *
      * @param throwable The exception that occurred during refresh
      * @return User-friendly error message for snackbar
      */
-    private fun handleRefreshError(throwable: Throwable): String = when (throwable) {
-        is java.net.UnknownHostException,
-        is java.net.SocketTimeoutException,
-        -> "No internet connection. Can't refresh books."
-        is java.io.IOException -> "Network error. Failed to refresh books."
-        else -> "Failed to refresh: ${throwable.message ?: "Unknown error"}"
+    private fun handleRefreshError(throwable: Throwable): String {
+        val networkException = if (throwable is NetworkException) {
+            throwable
+        } else {
+            throwable.toNetworkException(networkConnectivity.isConnected())
+        }
+        return "Failed to refresh: ${networkException.toUserMessage(context)}"
+    }
+
+    /**
+     * Retries the last failed refresh operation.
+     *
+     * This is called from the UI when the user clicks the retry button.
+     * Checks network connectivity before retrying if the error was a NoInternetException.
+     */
+    fun retryRefresh() {
+        viewModelScope.launch {
+            settingsRepository.getSettings().collect { settings ->
+                if (settings.username.isNotEmpty()) {
+                    Log.i(TAG, "Retrying refresh for username: ${settings.username}")
+                    refresh(settings.username)
+                } else {
+                    _errorMessage.value = "No username set. Please configure your username in settings."
+                }
+                // Only collect once
+                return@collect
+            }
+        }
     }
 
     /**

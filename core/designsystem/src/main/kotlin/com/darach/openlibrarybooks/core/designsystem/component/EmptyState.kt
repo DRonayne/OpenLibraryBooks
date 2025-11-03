@@ -14,9 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.LibraryBooks
-import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,9 +24,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.darach.openlibrarybooks.core.designsystem.R
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
 
 /**
@@ -73,12 +74,12 @@ fun EmptyState(
         // Icon with subtle pulsing animation
         Icon(
             imageVector = when (emptyStateType) {
-                EmptyStateType.NO_BOOKS_FOUND -> Icons.Default.SearchOff
-                EmptyStateType.NO_BOOKS_IN_LIBRARY -> Icons.Default.LibraryBooks
+                EmptyStateType.NO_BOOKS_FOUND -> Icons.AutoMirrored.Filled.MenuBook
+                EmptyStateType.NO_BOOKS_IN_LIBRARY -> Icons.AutoMirrored.Filled.MenuBook
                 EmptyStateType.NO_FAVOURITES -> Icons.Default.FavoriteBorder
-                EmptyStateType.NO_BOOKS_IN_LIST -> Icons.Default.LibraryBooks
+                EmptyStateType.NO_BOOKS_IN_LIST -> Icons.AutoMirrored.Filled.MenuBook
             },
-            contentDescription = "Empty state icon",
+            contentDescription = stringResource(R.string.empty_state_icon),
             modifier = Modifier
                 .size(96.dp)
                 .alpha(alpha),
@@ -130,7 +131,7 @@ enum class EmptyStateType {
 @Composable
 fun NoBooksFoundEmptyState(modifier: Modifier = Modifier) {
     EmptyState(
-        message = "No books found. Try adjusting your filters or search.",
+        message = stringResource(R.string.no_books_found),
         modifier = modifier,
         emptyStateType = EmptyStateType.NO_BOOKS_FOUND,
     )
@@ -144,7 +145,7 @@ fun NoBooksFoundEmptyState(modifier: Modifier = Modifier) {
 @Composable
 fun NoLibraryBooksEmptyState(modifier: Modifier = Modifier) {
     EmptyState(
-        message = "Your library is empty. Start adding books to get started!",
+        message = stringResource(R.string.library_empty),
         modifier = modifier,
         emptyStateType = EmptyStateType.NO_BOOKS_IN_LIBRARY,
     )
@@ -158,7 +159,7 @@ fun NoLibraryBooksEmptyState(modifier: Modifier = Modifier) {
 @Composable
 fun NoFavouritesEmptyState(modifier: Modifier = Modifier) {
     EmptyState(
-        message = "No favourite books yet. Mark books as favourites to see them here.",
+        message = stringResource(R.string.no_favourite_books),
         modifier = modifier,
         emptyStateType = EmptyStateType.NO_FAVOURITES,
     )

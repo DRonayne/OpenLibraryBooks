@@ -1,0 +1,9 @@
+<resources>
+    <!-- Settings Screen -->
+    <string name="username">Username</string>
+    <string name="change_username_prompt">Enter your Open Library username. We\'ll check if it exists before saving.</string>
+    <string name="clear_cache_title">Clear cache?</string>
+    <string name="clear_cache_warning">This will remove all locally stored data including:</string>
+    <string name="clear_cache_items">• All cached books\n• All favourites\n• Filter and sort preferences</string>
+    <string name="clear_cache_info">The app will automatically sync fresh data from Open Library after clearing.</string>
+</resources>

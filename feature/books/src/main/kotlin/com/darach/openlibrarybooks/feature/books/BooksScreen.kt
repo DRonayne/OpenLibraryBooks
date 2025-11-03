@@ -65,6 +65,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -91,6 +92,7 @@ import com.darach.openlibrarybooks.core.domain.model.FilterOptions
 import com.darach.openlibrarybooks.core.domain.model.ReadingStatus
 import com.darach.openlibrarybooks.core.domain.model.SortOption
 import com.darach.openlibrarybooks.core.domain.repository.FavouritesRepository
+import com.darach.openlibrarybooks.feature.books.R
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -330,7 +332,12 @@ private fun BooksScreenContent(
     ) { paddingValues ->
         PullToRefreshBox(
             isRefreshing = state.isRefreshing,
-            onRefresh = onRefresh,
+            onRefresh = {
+                // Only allow refresh when online
+                if (!state.isOffline) {
+                    onRefresh()
+                }
+            },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
@@ -448,7 +455,7 @@ private fun BooksTopAppBar(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Open Library",
+                        text = stringResource(R.string.open_library),
                         style = MaterialTheme.typography.headlineMedium,
                         color = contentColor,
                     )
@@ -513,7 +520,7 @@ private fun TopAppBarActions(
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Tune,
-                    contentDescription = "Filter books",
+                    contentDescription = stringResource(R.string.filter_books),
                     tint = contentColor,
                 )
             }
@@ -523,7 +530,7 @@ private fun TopAppBarActions(
         IconButton(onClick = onSortClick) {
             Icon(
                 imageVector = Icons.Rounded.SwapVert,
-                contentDescription = "Sort books",
+                contentDescription = stringResource(R.string.sort_books),
                 tint = contentColor,
             )
         }
@@ -685,14 +692,14 @@ private fun YearRangeFilterSection(
 ) {
     Column {
         Text(
-            text = "Publication Year",
+            text = stringResource(R.string.publication_year),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(bottom = 8.dp),
         )
 
         Text(
-            text = "${selectedYearRange.first} - ${selectedYearRange.second}",
+            text = stringResource(R.string.year_range, selectedYearRange.first, selectedYearRange.second),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(bottom = 8.dp),
@@ -768,7 +775,7 @@ fun FilterBottomSheet(
         ) {
             // Title
             Text(
-                text = "Filter Books",
+                text = stringResource(R.string.filter_books_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 24.dp),
@@ -786,7 +793,7 @@ fun FilterBottomSheet(
             // Author Section - only show if authors are available
             if (availableAuthors.isNotEmpty()) {
                 Text(
-                    text = "Authors",
+                    text = stringResource(R.string.authors),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(bottom = 12.dp),
@@ -830,7 +837,7 @@ fun FilterBottomSheet(
             // Subject Section - only show if subjects are available
             if (availableSubjects.isNotEmpty()) {
                 Text(
-                    text = "Subjects",
+                    text = stringResource(R.string.subjects),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(bottom = 12.dp),
@@ -986,7 +993,7 @@ fun SortBottomSheet(
         ) {
             // Title
             Text(
-                text = "Sort By",
+                text = stringResource(R.string.sort_by),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 24.dp),
@@ -1051,7 +1058,7 @@ private fun SortOptionRow(
         if (isSelected) {
             Icon(
                 imageVector = Icons.Default.Check,
-                contentDescription = "Selected",
+                contentDescription = stringResource(R.string.selected),
                 tint = MaterialTheme.colorScheme.primary,
             )
         }

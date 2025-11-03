@@ -1,0 +1,9 @@
+<resources>
+    <!-- Mensajes de error -->
+    <string name="error_no_internet">Sin conexión a Internet. Por favor, comprueba tu configuración de red e inténtalo de nuevo.</string>
+    <string name="error_timeout">La solicitud expiró. Por favor, inténtalo de nuevo.</string>
+    <string name="error_not_found">Recurso no encontrado.</string>
+    <string name="error_invalid_request">Solicitud no válida. Por favor, inténtalo de nuevo.</string>
+    <string name="error_server_unavailable">Servidor no disponible. Por favor, inténtalo más tarde.</string>
+    <string name="error_generic">Algo salió mal. Por favor, inténtalo de nuevo.</string>
+</resources>

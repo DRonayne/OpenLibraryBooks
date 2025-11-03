@@ -1,0 +1,86 @@
+<resources>
+    <!-- Nom de l'application -->
+    <string name="app_name">OpenLibraryBooks</string>
+
+    <!-- Commun -->
+    <string name="close">Fermer</string>
+    <string name="cancel">Annuler</string>
+    <string name="save">Enregistrer</string>
+    <string name="clear">Effacer</string>
+    <string name="apply">Appliquer</string>
+    <string name="retry">Réessayer</string>
+    <string name="valid">Valide</string>
+
+    <!-- Écran des paramètres -->
+    <string name="settings">Paramètres</string>
+    <string name="user">Utilisateur</string>
+    <string name="username">Nom d\'utilisateur</string>
+    <string name="username_not_set">Non défini</string>
+    <string name="change">Modifier</string>
+    <string name="appearance">Apparence</string>
+    <string name="dark_mode">Mode sombre</string>
+    <string name="dark_mode_description">Utiliser le thème sombre dans toute l\'application</string>
+    <string name="dynamic_theme">Thème dynamique</string>
+    <string name="dynamic_theme_description">Assortir les couleurs à votre fond d\'écran</string>
+    <string name="data">Données</string>
+    <string name="last_sync">Dernière synchronisation</string>
+    <string name="clear_cache">Vider le cache</string>
+    <string name="clear_cache_description">Supprimer tous les livres et favoris stockés localement</string>
+    <string name="about">À propos</string>
+    <string name="app_version">Version de l\'application</string>
+    <string name="change_username">Modifier le nom d\'utilisateur</string>
+    <string name="change_username_prompt">Saisissez votre nom d\'utilisateur Open Library. Nous vérifierons son existence avant de l\'enregistrer.</string>
+    <string name="validate">Valider</string>
+    <string name="username_valid">Le nom d\'utilisateur est valide !</string>
+    <string name="clear_cache_title">Vider le cache ?</string>
+    <string name="clear_cache_warning">Cela supprimera toutes les données stockées localement, y compris :</string>
+    <string name="clear_cache_items">• Tous les livres en cache\n• Tous les favoris\n• Les préférences de filtre et de tri</string>
+    <string name="clear_cache_info">L\'application synchronisera automatiquement les nouvelles données depuis Open Library après le vidage.</string>
+
+    <!-- Écran des livres -->
+    <string name="loading_books">Chargement de vos livres depuis Open Library…</string>
+    <string name="library_empty">Votre bibliothèque est vide. Tirez pour actualiser et synchroniser vos livres depuis Open Library.</string>
+    <string name="open_library">Open Library</string>
+    <string name="filter_books">Filtrer les livres</string>
+    <string name="sort_books">Trier les livres</string>
+    <string name="want_to_read">À lire</string>
+    <string name="reading">En cours de lecture</string>
+    <string name="finished">Terminé</string>
+    <string name="publication_year">Année de publication</string>
+    <string name="year_range">%1$d - %2$d</string>
+    <string name="filter_books_title">Filtrer les livres</string>
+    <string name="authors">Auteurs</string>
+    <string name="subjects">Sujets</string>
+    <string name="clear_all">Tout effacer</string>
+    <string name="sort_by">Trier par</string>
+    <string name="selected">Sélectionné</string>
+
+    <!-- Écran des favoris -->
+    <string name="no_favourites">Aucun favori pour le moment. Marquez des livres comme favoris depuis votre bibliothèque et ils apparaîtront ici.</string>
+    <string name="loading_favourites">Chargement des favoris…</string>
+
+    <!-- Détails du livre -->
+    <string name="published">Publié :</string>
+    <string name="edition_singular">édition</string>
+    <string name="edition_plural">éditions</string>
+    <string name="read_more">Lire plus</string>
+    <string name="read_less">Lire moins</string>
+    <string name="book_cover">Couverture de %1$s</string>
+
+    <!-- États vides -->
+    <string name="empty_state_icon">Icône d\'état vide</string>
+    <string name="no_books_found">Aucun livre trouvé. Essayez d\'ajuster vos filtres ou votre recherche.</string>
+    <string name="library_empty_start">Votre bibliothèque est vide. Commencez à ajouter des livres pour démarrer !</string>
+    <string name="no_favourite_books">Aucun livre favori pour le moment. Marquez des livres comme favoris pour les voir ici.</string>
+    <string name="no_books_in_list">Aucun livre dans cette liste de lecture</string>
+
+    <!-- États d'erreur -->
+    <string name="error_icon">Icône d\'erreur</string>
+    <string name="error_no_internet">Pas de connexion Internet. Veuillez vérifier vos paramètres réseau et réessayer.</string>
+    <string name="error_timeout">La demande a expiré. Veuillez réessayer.</string>
+    <string name="error_not_found">Ressource introuvable.</string>
+    <string name="error_invalid_request">Demande non valide. Veuillez réessayer.</string>
+    <string name="error_server_unavailable">Serveur indisponible. Veuillez réessayer plus tard.</string>
+    <string name="error_generic">Quelque chose s\'est mal passé. Veuillez réessayer.</string>
+    <string name="error_occurred">Une erreur s\'est produite</string>
+</resources>
