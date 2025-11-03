@@ -87,9 +87,10 @@ class NetworkConnectivity @Inject constructor(@ApplicationContext private val co
             override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
                 val hasInternet = networkCapabilities.hasCapability(
                     NetworkCapabilities.NET_CAPABILITY_INTERNET,
-                ) && networkCapabilities.hasCapability(
-                    NetworkCapabilities.NET_CAPABILITY_VALIDATED,
-                )
+                ) &&
+                    networkCapabilities.hasCapability(
+                        NetworkCapabilities.NET_CAPABILITY_VALIDATED,
+                    )
                 trySend(hasInternet && networks.isNotEmpty())
             }
         }

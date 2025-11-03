@@ -6,7 +6,6 @@ import io.reactivex.rxjava3.core.Single
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.rx3.asFlow
 import kotlinx.coroutines.rx3.await
-import kotlinx.coroutines.rx3.awaitSingleOrNull
 
 /**
  * Extension functions for converting RxJava types to Kotlin Flow and suspend functions.
