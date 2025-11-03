@@ -16,6 +16,7 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:domain"))
+    implementation(project(":core:data"))
     implementation(project(":core:designsystem"))
 
     implementation(libs.androidx.compose.material.icons.extended)
@@ -31,5 +32,9 @@ dependencies {
 
     implementation(libs.androidx.hilt.navigation.compose)
 
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
     testImplementation(libs.turbine)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.kotest.assertions.core)
 }

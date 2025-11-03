@@ -44,6 +44,7 @@ android {
 dependencies {
     // Core modules
     implementation(project(":core:designsystem"))
+    implementation(project(":core:data"))
 
     // Feature modules
     implementation(project(":feature:books"))

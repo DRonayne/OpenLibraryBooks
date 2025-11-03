@@ -53,6 +53,13 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                     sourceCompatibility = javaVersion
                     targetCompatibility = javaVersion
                 }
+
+                packaging {
+                    resources {
+                        excludes += "/META-INF/LICENSE.md"
+                        excludes += "/META-INF/LICENSE-notice.md"
+                    }
+                }
             }
 
             // Configure Kotlin options

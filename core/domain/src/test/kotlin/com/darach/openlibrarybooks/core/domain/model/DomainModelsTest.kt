@@ -169,7 +169,8 @@ class SortOptionTest {
     fun `SortOption displayName returns correct strings`() {
         assertEquals("Title (A-Z)", SortOption.TitleAscending.displayName())
         assertEquals("Title (Z-A)", SortOption.TitleDescending.displayName())
-        assertEquals("Author Name", SortOption.AuthorName.displayName())
+        assertEquals("Author (A-Z)", SortOption.AuthorAscending.displayName())
+        assertEquals("Author (Z-A)", SortOption.AuthorDescending.displayName())
         assertEquals("Newest First", SortOption.PublishYearNewest.displayName())
         assertEquals("Oldest First", SortOption.PublishYearOldest.displayName())
         assertEquals("Recently Added", SortOption.DateAddedNewest.displayName())
@@ -177,18 +178,19 @@ class SortOptionTest {
     }
 
     @Test
-    fun `SortOption sealed class has seven options`() {
+    fun `SortOption sealed class has eight options`() {
         val options = listOf(
             SortOption.TitleAscending,
             SortOption.TitleDescending,
-            SortOption.AuthorName,
+            SortOption.AuthorAscending,
+            SortOption.AuthorDescending,
             SortOption.PublishYearNewest,
             SortOption.PublishYearOldest,
             SortOption.DateAddedNewest,
             SortOption.DateAddedOldest,
         )
 
-        assertEquals(7, options.size)
+        assertEquals(8, options.size)
     }
 
     @Test

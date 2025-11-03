@@ -19,7 +19,12 @@ sealed class SortOption {
     /**
      * Sort by first author's name in ascending order (A-Z)
      */
-    data object AuthorName : SortOption()
+    data object AuthorAscending : SortOption()
+
+    /**
+     * Sort by first author's name in descending order (Z-A)
+     */
+    data object AuthorDescending : SortOption()
 
     /**
      * Sort by publication year, newest first
@@ -47,7 +52,8 @@ sealed class SortOption {
     fun displayName(): String = when (this) {
         is TitleAscending -> "Title (A-Z)"
         is TitleDescending -> "Title (Z-A)"
-        is AuthorName -> "Author Name"
+        is AuthorAscending -> "Author (A-Z)"
+        is AuthorDescending -> "Author (Z-A)"
         is PublishYearNewest -> "Newest First"
         is PublishYearOldest -> "Oldest First"
         is DateAddedNewest -> "Recently Added"
