@@ -2,6 +2,8 @@ package com.darach.openlibrarybooks.feature.settings
 
 import android.util.Log
 import app.cash.turbine.test
+import com.darach.openlibrarybooks.core.common.analytics.FirebaseAnalyticsHelper
+import com.darach.openlibrarybooks.core.common.crashlytics.FirebaseCrashlyticsHelper
 import com.darach.openlibrarybooks.core.domain.model.FilterOptions
 import com.darach.openlibrarybooks.core.domain.model.ReadingStatus
 import com.darach.openlibrarybooks.core.domain.model.Settings
@@ -55,6 +57,8 @@ class SettingsViewModelTest {
     private lateinit var mockSettingsRepository: SettingsRepository
     private lateinit var mockBooksRepository: BooksRepository
     private lateinit var mockFavouritesRepository: FavouritesRepository
+    private lateinit var mockAnalyticsHelper: FirebaseAnalyticsHelper
+    private lateinit var mockCrashlyticsHelper: FirebaseCrashlyticsHelper
     private val testDispatcher = UnconfinedTestDispatcher()
 
     private val defaultSettings = Settings(
@@ -88,6 +92,8 @@ class SettingsViewModelTest {
         mockSettingsRepository = mockk(relaxed = true)
         mockBooksRepository = mockk(relaxed = true)
         mockFavouritesRepository = mockk(relaxed = true)
+        mockAnalyticsHelper = mockk(relaxed = true)
+        mockCrashlyticsHelper = mockk(relaxed = true)
 
         every { mockSettingsRepository.getSettings() } returns settingsFlow
     }
@@ -105,6 +111,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.settings.test {
@@ -120,6 +128,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.validationState.value shouldBe UsernameValidationState.Idle
@@ -135,6 +145,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.validateUsername("validuser")
@@ -155,6 +167,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.validateUsername("invaliduser")
@@ -170,6 +184,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.validationState.test {
@@ -196,6 +212,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.validateUsername("timeoutuser")
@@ -214,6 +232,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.validateUsername("networkerror")
@@ -231,6 +251,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.updateUsername("newuser")
@@ -248,6 +270,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.errorMessage.test {
@@ -268,6 +292,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.toggleDarkMode(true)
@@ -284,6 +310,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.errorMessage.test {
@@ -304,6 +332,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.toggleDynamicTheme(false)
@@ -320,6 +350,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.errorMessage.test {
@@ -341,6 +373,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.updateSortOption(sortOption)
@@ -358,6 +392,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.errorMessage.test {
@@ -379,6 +415,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.updateFilterOptions(filterOptions)
@@ -396,6 +434,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.errorMessage.test {
@@ -414,6 +454,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         val formatted = viewModel.formatLastSyncTimestamp(0L)
@@ -427,6 +469,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         // 2021-01-01 00:00:00 GMT (adjust based on your timezone in tests)
@@ -444,6 +488,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.showClearCacheDialog.test {
@@ -461,6 +507,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.showClearCacheDialog()
@@ -487,6 +535,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.clearCache()
@@ -511,6 +561,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.errorMessage.test {
@@ -539,6 +591,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.clearCache()
@@ -565,6 +619,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.clearCache()
@@ -586,6 +642,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.validateUsername("testuser")
@@ -604,6 +662,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.errorMessage.test {
@@ -623,6 +683,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.isClearingCache.value shouldBe false
@@ -637,6 +699,8 @@ class SettingsViewModelTest {
             mockSettingsRepository,
             mockBooksRepository,
             mockFavouritesRepository,
+            mockAnalyticsHelper,
+            mockCrashlyticsHelper,
         )
 
         viewModel.isClearingCache.test {

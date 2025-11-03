@@ -63,7 +63,6 @@ import com.darach.openlibrarybooks.core.designsystem.component.FavoriteFilledIco
 import com.darach.openlibrarybooks.core.designsystem.component.ShimmerBox
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
 import com.darach.openlibrarybooks.core.domain.model.WorkDetails
-import com.darach.openlibrarybooks.feature.books.R
 
 /**
  * Bottom sheet displaying detailed information about a book.
@@ -132,6 +131,7 @@ fun BookDetailsBottomSheet(
  * Loading state for book details.
  * Displays shimmering placeholders while data is being fetched.
  */
+@Suppress("LongMethod")
 @Composable
 private fun BookDetailsLoadingState() {
     Column(

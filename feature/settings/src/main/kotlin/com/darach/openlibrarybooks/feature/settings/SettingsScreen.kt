@@ -72,7 +72,6 @@ import com.darach.openlibrarybooks.core.designsystem.component.OfflineIndicator
 import com.darach.openlibrarybooks.core.designsystem.component.TriangularPattern
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
 import com.darach.openlibrarybooks.core.domain.model.Settings
-import com.darach.openlibrarybooks.feature.settings.R
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors

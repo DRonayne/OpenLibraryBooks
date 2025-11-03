@@ -50,4 +50,10 @@ dependencies {
 
     // Retrofit for HttpException type
     implementation(libs.retrofit)
+
+    // Firebase (using BOM for version management)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.perf)
 }

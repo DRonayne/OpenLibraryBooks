@@ -47,7 +47,6 @@ import com.darach.openlibrarybooks.core.domain.model.ReadingStatus
 import com.darach.openlibrarybooks.core.domain.repository.FavouritesRepository
 import com.darach.openlibrarybooks.feature.books.BookDetailsBottomSheet
 import com.darach.openlibrarybooks.feature.books.BookDetailsViewModel
-import com.darach.openlibrarybooks.feature.favourites.R
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors

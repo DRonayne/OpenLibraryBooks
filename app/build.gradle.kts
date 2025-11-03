@@ -5,6 +5,9 @@ plugins {
     id("openlibrarybooks.android.application")
     id("openlibrarybooks.android.hilt")
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.firebase.perf)
 }
 
 // Load local.properties
@@ -43,6 +46,7 @@ android {
 
 dependencies {
     // Core modules
+    implementation(project(":core:common"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:domain"))
     implementation(project(":core:data"))
@@ -71,6 +75,13 @@ dependencies {
     implementation(libs.androidx.work.rxjava3)
     implementation(libs.androidx.hilt.work)
     ksp(libs.androidx.hilt.compiler)
+
+    // Firebase (using BOM for version management)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.crashlytics.ndk)
+    implementation(libs.firebase.perf)
 
     // Compose dependencies (BOM and common libraries added by convention plugin)
     androidTestImplementation(platform(libs.androidx.compose.bom))

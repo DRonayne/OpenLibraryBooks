@@ -3,6 +3,8 @@ package com.darach.openlibrarybooks.feature.favourites
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.darach.openlibrarybooks.core.common.analytics.FirebaseAnalyticsHelper
+import com.darach.openlibrarybooks.core.common.crashlytics.FirebaseCrashlyticsHelper
 import com.darach.openlibrarybooks.core.common.ui.UiState
 import com.darach.openlibrarybooks.core.domain.model.Book
 import com.darach.openlibrarybooks.core.domain.repository.FavouritesRepository
@@ -31,7 +33,13 @@ import javax.inject.Inject
  * @property favouritesRepository Repository for accessing favourites data
  */
 @HiltViewModel
-class FavouritesViewModel @Inject constructor(private val favouritesRepository: FavouritesRepository) : ViewModel() {
+class FavouritesViewModel
+@Inject
+constructor(
+    private val favouritesRepository: FavouritesRepository,
+    private val analyticsHelper: FirebaseAnalyticsHelper,
+    private val crashlyticsHelper: FirebaseCrashlyticsHelper,
+) : ViewModel() {
 
     private val compositeDisposable = CompositeDisposable()
 
@@ -56,6 +64,16 @@ class FavouritesViewModel @Inject constructor(private val favouritesRepository: 
         }
         .catch { throwable ->
             Log.e(TAG, "Error in favourites flow", throwable)
+            crashlyticsHelper.recordViewModelError(
+                viewModelName = "FavouritesViewModel",
+                action = "load_favourites",
+                throwable = throwable,
+            )
+            analyticsHelper.logError(
+                errorType = "favourites_load_error",
+                errorMessage = throwable.message ?: "Unknown error",
+                screenName = FirebaseAnalyticsHelper.SCREEN_FAVOURITES,
+            )
             emit(
                 UiState.Error(
                     message = handleError(throwable),
@@ -103,7 +121,7 @@ class FavouritesViewModel @Inject constructor(private val favouritesRepository: 
      *
      * @param bookId The composite key of the book to toggle
      */
-    fun toggleFavourite(bookId: String) {
+    fun toggleFavourite(bookId: String, bookTitle: String = "") {
         // Optimistic update: immediately update the UI state
         val currentStatus = _favouriteStatusMap.value[bookId] ?: false
         val newStatus = !currentStatus
@@ -115,10 +133,26 @@ class FavouritesViewModel @Inject constructor(private val favouritesRepository: 
             .subscribeBy(
                 onComplete = {
                     Log.i(TAG, "Successfully toggled favourite for book: $bookId")
+                    // Log analytics event based on the new status
+                    if (newStatus) {
+                        analyticsHelper.logBookFavourited(bookId, bookTitle)
+                    } else {
+                        analyticsHelper.logBookUnfavourited(bookId, bookTitle)
+                    }
                     // The favouritesUiState will update automatically from the repository Flow
                 },
                 onError = { throwable ->
                     Log.e(TAG, "Failed to toggle favourite for book: $bookId", throwable)
+                    crashlyticsHelper.recordBookError(
+                        bookId = bookId,
+                        action = "toggle_favourite",
+                        throwable = throwable,
+                    )
+                    analyticsHelper.logError(
+                        errorType = "toggle_favourite_error",
+                        errorMessage = throwable.message ?: "Unknown error",
+                        screenName = FirebaseAnalyticsHelper.SCREEN_FAVOURITES,
+                    )
                     // Rollback the optimistic update on error
                     _favouriteStatusMap.value = _favouriteStatusMap.value + (bookId to currentStatus)
                     Log.w(TAG, "Rolled back optimistic update for $bookId to $currentStatus")
@@ -135,15 +169,29 @@ class FavouritesViewModel @Inject constructor(private val favouritesRepository: 
      */
     fun clearAllFavourites() {
         Log.d(TAG, "Clearing all favourites")
+        val currentCount = favouriteCount.value
 
         favouritesRepository.clearAllFavourites()
             .subscribeBy(
                 onComplete = {
                     Log.i(TAG, "Successfully cleared all favourites")
+                    analyticsHelper.logEvent("favourites_cleared") {
+                        putInt("count", currentCount)
+                    }
                     _favouriteStatusMap.value = emptyMap()
                 },
                 onError = { throwable ->
                     Log.e(TAG, "Failed to clear all favourites", throwable)
+                    crashlyticsHelper.recordViewModelError(
+                        viewModelName = "FavouritesViewModel",
+                        action = "clear_all_favourites",
+                        throwable = throwable,
+                    )
+                    analyticsHelper.logError(
+                        errorType = "clear_favourites_error",
+                        errorMessage = throwable.message ?: "Unknown error",
+                        screenName = FirebaseAnalyticsHelper.SCREEN_FAVOURITES,
+                    )
                 },
             )
             .addTo(compositeDisposable)

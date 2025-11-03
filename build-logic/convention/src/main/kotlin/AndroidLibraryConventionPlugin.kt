@@ -70,6 +70,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                             libs.findVersion("javaVersion").get().toString()
                         )
                     )
+                    freeCompilerArgs.add("-Xannotation-default-target=param-property")
                 }
             }
 

@@ -28,7 +28,7 @@ object DatabaseModule {
         AppDatabase::class.java,
         AppDatabase.DATABASE_NAME,
     )
-        .fallbackToDestructiveMigration() // For development; will be removed in production
+        .fallbackToDestructiveMigration(dropAllTables = true) // For development; will be removed in production
         .build()
 
     /**

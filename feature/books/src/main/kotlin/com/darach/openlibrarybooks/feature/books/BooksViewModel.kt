@@ -3,6 +3,8 @@ package com.darach.openlibrarybooks.feature.books
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.darach.openlibrarybooks.core.common.analytics.FirebaseAnalyticsHelper
+import com.darach.openlibrarybooks.core.common.crashlytics.FirebaseCrashlyticsHelper
 import com.darach.openlibrarybooks.core.common.exception.NetworkException
 import com.darach.openlibrarybooks.core.common.exception.toNetworkException
 import com.darach.openlibrarybooks.core.common.ui.UiState
@@ -54,6 +56,8 @@ constructor(
     private val booksRepository: BooksRepository,
     private val settingsRepository: SettingsRepository,
     private val networkConnectivity: NetworkConnectivity,
+    private val analyticsHelper: FirebaseAnalyticsHelper,
+    private val crashlyticsHelper: FirebaseCrashlyticsHelper,
 ) : ViewModel() {
 
     private val compositeDisposable = CompositeDisposable()
@@ -111,6 +115,16 @@ constructor(
             }
             .catch { throwable ->
                 Log.e(TAG, "Error in books flow", throwable)
+                crashlyticsHelper.recordViewModelError(
+                    viewModelName = "BooksViewModel",
+                    action = "load_books",
+                    throwable = throwable,
+                )
+                analyticsHelper.logError(
+                    errorType = "books_load_error",
+                    errorMessage = throwable.message ?: "Unknown error",
+                    screenName = FirebaseAnalyticsHelper.SCREEN_BOOKS,
+                )
                 emit(
                     UiState.Error(
                         message = handleError(throwable),
@@ -270,12 +284,23 @@ constructor(
             .subscribeBy(
                 onComplete = {
                     Log.i(TAG, "Refresh completed successfully for username: $username")
+                    analyticsHelper.logBooksSynced(success = true, booksCount = 0)
                     if (!silent) {
                         _isRefreshing.value = false
                     }
                 },
                 onError = { throwable ->
                     Log.e(TAG, "Refresh failed for username: $username", throwable)
+                    crashlyticsHelper.recordSyncError(
+                        status = "books_sync_failed",
+                        throwable = throwable,
+                    )
+                    analyticsHelper.logBooksSynced(success = false, booksCount = 0)
+                    analyticsHelper.logError(
+                        errorType = "sync_error",
+                        errorMessage = throwable.message ?: "Unknown sync error",
+                        screenName = FirebaseAnalyticsHelper.SCREEN_BOOKS,
+                    )
                     if (!silent) {
                         _isRefreshing.value = false
                         _errorMessage.value = handleRefreshError(throwable)
@@ -296,6 +321,17 @@ constructor(
     fun updateFilters(filters: FilterOptions) {
         Log.d(TAG, "Filter options updated: statuses=${filters.readingStatuses}, isFavourite=${filters.isFavorite}")
         _filterOptions.value = filters
+        analyticsHelper.logBooksFiltered(
+            filterType = buildString {
+                append("statuses:${filters.readingStatuses.joinToString(",")}")
+                if (filters.isFavorite == true) append(";favourite")
+                if (filters.authors.isNotEmpty()) append(";authors:${filters.authors.size}")
+                if (filters.subjects.isNotEmpty()) append(";subjects:${filters.subjects.size}")
+                if (filters.yearFrom != null || filters.yearTo != null) {
+                    append(";years:${filters.yearFrom ?: "any"}-${filters.yearTo ?: "any"}")
+                }
+            },
+        )
     }
 
     /**
@@ -309,6 +345,7 @@ constructor(
     fun updateSort(sort: SortOption) {
         Log.d(TAG, "Sort option updated: $sort")
         _sortOption.value = sort
+        analyticsHelper.logBooksSorted(sortType = sort::class.simpleName ?: "Unknown")
     }
 
     /**

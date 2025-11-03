@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -15,6 +16,7 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.darach.openlibrarybooks.core.common.analytics.FirebaseAnalyticsHelper
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
 import com.darach.openlibrarybooks.navigation.BooksRoute
 import com.darach.openlibrarybooks.navigation.FavouritesRoute
@@ -22,6 +24,7 @@ import com.darach.openlibrarybooks.navigation.OpenLibraryNavHost
 import com.darach.openlibrarybooks.navigation.SettingsRoute
 import com.darach.openlibrarybooks.navigation.TopLevelDestination
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * Main entry point for the Open Library Books app.
@@ -30,6 +33,10 @@ import dagger.hilt.android.AndroidEntryPoint
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var analyticsHelper: FirebaseAnalyticsHelper
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -38,7 +45,10 @@ class MainActivity : ComponentActivity() {
         val deeplink = intent?.data?.toString()
 
         setContent {
-            OpenLibraryApp(deeplinkUri = deeplink)
+            OpenLibraryApp(
+                analyticsHelper = analyticsHelper,
+                deeplinkUri = deeplink,
+            )
         }
     }
 }
@@ -48,9 +58,14 @@ class MainActivity : ComponentActivity() {
  * Observes user settings to apply dark mode and dynamic theming.
  *
  * @param deeplinkUri Optional deeplink URI from widget or external source
+ * @param analyticsHelper Helper for Firebase Analytics tracking
  */
 @Composable
-private fun OpenLibraryApp(deeplinkUri: String? = null, viewModel: AppViewModel = hiltViewModel()) {
+private fun OpenLibraryApp(
+    analyticsHelper: FirebaseAnalyticsHelper,
+    deeplinkUri: String? = null,
+    viewModel: AppViewModel = hiltViewModel(),
+) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -58,8 +73,21 @@ private fun OpenLibraryApp(deeplinkUri: String? = null, viewModel: AppViewModel 
     // Observe settings for theme configuration
     val settings by viewModel.settings.collectAsStateWithLifecycle()
 
+    // Track screen views when navigation changes
+    LaunchedEffect(currentDestination) {
+        currentDestination?.let { destination ->
+            val screenName = when {
+                destination.hasRoute(BooksRoute::class) -> FirebaseAnalyticsHelper.SCREEN_BOOKS
+                destination.hasRoute(FavouritesRoute::class) -> FirebaseAnalyticsHelper.SCREEN_FAVOURITES
+                destination.hasRoute(SettingsRoute::class) -> FirebaseAnalyticsHelper.SCREEN_SETTINGS
+                else -> "unknown_screen"
+            }
+            analyticsHelper.logScreenView(screenName, destination.route)
+        }
+    }
+
     // Handle deeplink navigation
-    androidx.compose.runtime.LaunchedEffect(deeplinkUri) {
+    LaunchedEffect(deeplinkUri) {
         if (deeplinkUri == "openlibrarybooks://favourites") {
             navController.navigate(FavouritesRoute) {
                 popUpTo(navController.graph.startDestinationId) {

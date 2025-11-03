@@ -3,6 +3,7 @@ package com.darach.openlibrarybooks.core.network.di
 import com.darach.openlibrarybooks.core.network.api.OpenLibraryApi
 import com.darach.openlibrarybooks.core.network.dto.DescriptionDeserializer
 import com.darach.openlibrarybooks.core.network.dto.DescriptionDto
+import com.darach.openlibrarybooks.core.network.interceptor.FirebasePerformanceInterceptor
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -32,6 +33,7 @@ object NetworkModule {
     /**
      * Provides configured OkHttpClient with:
      * - Accept header
+     * - Firebase Performance monitoring interceptor
      * - Logging interceptor (debug only)
      * - 30s connect timeout
      * - 60s read timeout
@@ -45,6 +47,7 @@ object NetworkModule {
                 .build()
             chain.proceed(request)
         }
+        .addInterceptor(FirebasePerformanceInterceptor())
         .addInterceptor(
             HttpLoggingInterceptor().apply {
                 // In debug builds, log full request/response bodies

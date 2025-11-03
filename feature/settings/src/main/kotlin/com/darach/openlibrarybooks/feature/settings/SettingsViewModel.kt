@@ -3,6 +3,8 @@ package com.darach.openlibrarybooks.feature.settings
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.darach.openlibrarybooks.core.common.analytics.FirebaseAnalyticsHelper
+import com.darach.openlibrarybooks.core.common.crashlytics.FirebaseCrashlyticsHelper
 import com.darach.openlibrarybooks.core.domain.model.FilterOptions
 import com.darach.openlibrarybooks.core.domain.model.Settings
 import com.darach.openlibrarybooks.core.domain.model.SortOption
@@ -64,10 +66,14 @@ sealed interface UsernameValidationState {
  * @property favouritesRepository Repository for managing favourites cache
  */
 @HiltViewModel
-class SettingsViewModel @Inject constructor(
+class SettingsViewModel
+@Inject
+constructor(
     private val settingsRepository: SettingsRepository,
     private val booksRepository: BooksRepository,
     private val favouritesRepository: FavouritesRepository,
+    private val analyticsHelper: FirebaseAnalyticsHelper,
+    private val crashlyticsHelper: FirebaseCrashlyticsHelper,
 ) : ViewModel() {
 
     private val compositeDisposable = CompositeDisposable()
@@ -189,10 +195,23 @@ class SettingsViewModel @Inject constructor(
             .subscribeBy(
                 onComplete = {
                     Log.i(TAG, "Username updated successfully to: $username and cache cleared")
+                    analyticsHelper.logUsernameUpdated()
+                    analyticsHelper.setUserId(username)
+                    crashlyticsHelper.setUserId(username)
                     _validationState.value = UsernameValidationState.Idle
                 },
                 onError = { throwable ->
                     Log.e(TAG, "Failed to update username and clear cache", throwable)
+                    crashlyticsHelper.recordViewModelError(
+                        viewModelName = "SettingsViewModel",
+                        action = "update_username",
+                        throwable = throwable,
+                    )
+                    analyticsHelper.logError(
+                        errorType = "username_update_error",
+                        errorMessage = throwable.message ?: "Unknown error",
+                        screenName = FirebaseAnalyticsHelper.SCREEN_SETTINGS,
+                    )
                     _errorMessage.value = "Failed to save username: ${throwable.message}"
                 },
             )
@@ -213,9 +232,15 @@ class SettingsViewModel @Inject constructor(
             .subscribeBy(
                 onComplete = {
                     Log.i(TAG, "Dark mode updated successfully: $enabled")
+                    analyticsHelper.logThemeChanged(if (enabled) "dark" else "light")
                 },
                 onError = { throwable ->
                     Log.e(TAG, "Failed to toggle dark mode", throwable)
+                    crashlyticsHelper.recordViewModelError(
+                        viewModelName = "SettingsViewModel",
+                        action = "toggle_dark_mode",
+                        throwable = throwable,
+                    )
                     _errorMessage.value = "Failed to update dark mode: ${throwable.message}"
                 },
             )
@@ -236,9 +261,17 @@ class SettingsViewModel @Inject constructor(
             .subscribeBy(
                 onComplete = {
                     Log.i(TAG, "Dynamic theme updated successfully: $enabled")
+                    analyticsHelper.logEvent("dynamic_theme_changed") {
+                        putBoolean("enabled", enabled)
+                    }
                 },
                 onError = { throwable ->
                     Log.e(TAG, "Failed to toggle dynamic theme", throwable)
+                    crashlyticsHelper.recordViewModelError(
+                        viewModelName = "SettingsViewModel",
+                        action = "toggle_dynamic_theme",
+                        throwable = throwable,
+                    )
                     _errorMessage.value = "Failed to update dynamic theme: ${throwable.message}"
                 },
             )

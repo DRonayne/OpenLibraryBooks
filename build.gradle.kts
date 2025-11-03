@@ -11,6 +11,9 @@ plugins {
     alias(libs.plugins.kover)
     alias(libs.plugins.detekt) apply false
     alias(libs.plugins.spotless) apply false
+    alias(libs.plugins.google.services) apply false
+    alias(libs.plugins.firebase.crashlytics) apply false
+    alias(libs.plugins.firebase.perf) apply false
 }
 
 // Configure Kover for code coverage with 80% threshold

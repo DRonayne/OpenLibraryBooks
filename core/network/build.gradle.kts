@@ -28,5 +28,9 @@ dependencies {
     implementation(libs.rxandroid)
     implementation(libs.rxkotlin)
 
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.perf)
+
     testImplementation(libs.turbine)
 }

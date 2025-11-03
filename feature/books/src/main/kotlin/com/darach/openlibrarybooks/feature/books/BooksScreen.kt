@@ -92,7 +92,6 @@ import com.darach.openlibrarybooks.core.domain.model.FilterOptions
 import com.darach.openlibrarybooks.core.domain.model.ReadingStatus
 import com.darach.openlibrarybooks.core.domain.model.SortOption
 import com.darach.openlibrarybooks.core.domain.repository.FavouritesRepository
-import com.darach.openlibrarybooks.feature.books.R
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
