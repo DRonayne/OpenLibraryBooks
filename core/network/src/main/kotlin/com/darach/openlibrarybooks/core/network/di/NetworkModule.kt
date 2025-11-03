@@ -1,6 +1,10 @@
 package com.darach.openlibrarybooks.core.network.di
 
 import com.darach.openlibrarybooks.core.network.api.OpenLibraryApi
+import com.darach.openlibrarybooks.core.network.dto.DescriptionDeserializer
+import com.darach.openlibrarybooks.core.network.dto.DescriptionDto
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -46,18 +50,30 @@ object NetworkModule {
         .build()
 
     /**
+     * Provides configured Gson instance with custom deserializers.
+     *
+     * Registers custom deserializer for DescriptionDto to handle
+     * polymorphic description fields (string or object).
+     */
+    @Provides
+    @Singleton
+    fun provideGson(): Gson = GsonBuilder()
+        .registerTypeAdapter(DescriptionDto::class.java, DescriptionDeserializer())
+        .create()
+
+    /**
      * Provides configured Retrofit instance with:
      * - RxJava3 CallAdapter for reactive streams
-     * - Gson converter for JSON parsing
+     * - Gson converter for JSON parsing with custom deserializers
      * - Base URL for Open Library API
      */
     @Provides
     @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit = Retrofit.Builder()
+    fun provideRetrofit(okHttpClient: OkHttpClient, gson: Gson): Retrofit = Retrofit.Builder()
         .baseUrl(OPEN_LIBRARY_BASE_URL)
         .client(okHttpClient)
         .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
-        .addConverterFactory(GsonConverterFactory.create())
+        .addConverterFactory(GsonConverterFactory.create(gson))
         .build()
 
     /**
