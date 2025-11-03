@@ -2,6 +2,8 @@ package com.darach.openlibrarybooks.core.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import com.darach.openlibrarybooks.core.database.converter.Converters
 import com.darach.openlibrarybooks.core.database.entity.PlaceholderEntity
 
 /**
@@ -18,6 +20,7 @@ import com.darach.openlibrarybooks.core.database.entity.PlaceholderEntity
     version = 1,
     exportSchema = false,
 )
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     // DAOs will be added here in future implementation tickets
 

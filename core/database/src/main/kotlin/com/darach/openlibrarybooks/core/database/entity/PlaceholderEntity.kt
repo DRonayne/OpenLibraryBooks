@@ -9,6 +9,4 @@ import androidx.room.PrimaryKey
  * It will be removed when actual entities are implemented.
  */
 @Entity(tableName = "placeholder")
-internal data class PlaceholderEntity(
-    @PrimaryKey val id: Int = 0,
-)
+internal data class PlaceholderEntity(@PrimaryKey val id: Int = 0)

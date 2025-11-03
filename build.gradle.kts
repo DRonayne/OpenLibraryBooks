@@ -13,12 +13,12 @@ plugins {
     alias(libs.plugins.spotless) apply false
 }
 
-// Configure Kover for code coverage with 70% threshold
+// Configure Kover for code coverage with 80% threshold
 kover {
     reports {
         verify {
             rule {
-                minBound(70)
+                minBound(80)
             }
         }
     }

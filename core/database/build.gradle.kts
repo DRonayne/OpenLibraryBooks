@@ -5,6 +5,10 @@ plugins {
 
 android {
     namespace = "com.darach.openlibrarybooks.core.database"
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -18,6 +22,8 @@ dependencies {
 
     implementation(libs.rxjava3)
     implementation(libs.rxkotlin)
+
+    implementation(libs.gson)
 
     testImplementation(libs.androidx.room.testing)
     testImplementation(libs.turbine)

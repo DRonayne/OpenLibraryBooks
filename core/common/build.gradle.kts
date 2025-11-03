@@ -12,4 +12,9 @@ dependencies {
 
     // DataStore for preferences
     implementation(libs.androidx.datastore.preferences)
+
+    // RxJava for interoperability
+    implementation(libs.rxjava3)
+    implementation(libs.rxkotlin)
+    implementation(libs.kotlinx.coroutines.rx3)
 }
