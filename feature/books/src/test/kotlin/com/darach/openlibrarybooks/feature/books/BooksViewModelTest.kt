@@ -6,8 +6,10 @@ import com.darach.openlibrarybooks.core.common.ui.UiState
 import com.darach.openlibrarybooks.core.domain.model.Book
 import com.darach.openlibrarybooks.core.domain.model.FilterOptions
 import com.darach.openlibrarybooks.core.domain.model.ReadingStatus
+import com.darach.openlibrarybooks.core.domain.model.Settings
 import com.darach.openlibrarybooks.core.domain.model.SortOption
 import com.darach.openlibrarybooks.core.domain.repository.BooksRepository
+import com.darach.openlibrarybooks.core.domain.repository.SettingsRepository
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
@@ -47,6 +49,7 @@ import java.io.IOException
 class BooksViewModelTest {
 
     private lateinit var mockRepository: BooksRepository
+    private lateinit var mockSettingsRepository: SettingsRepository
     private val testDispatcher = UnconfinedTestDispatcher()
 
     private val sampleBooks = listOf(
@@ -120,6 +123,16 @@ class BooksViewModelTest {
 
         mockRepository = mockk(relaxed = true)
         every { mockRepository.getBooks() } returns flowOf(sampleBooks)
+
+        mockSettingsRepository = mockk(relaxed = true)
+        // Mock settings with a timestamp old enough to not trigger auto-refresh
+        every { mockSettingsRepository.getSettings() } returns flowOf(
+            Settings(
+                username = "testUser",
+                lastSyncTimestamp = System.currentTimeMillis(),
+            ),
+        )
+        every { mockSettingsRepository.updateLastSyncTimestamp(any()) } returns Completable.complete()
     }
 
     @After
@@ -131,7 +144,7 @@ class BooksViewModelTest {
 
     @Test
     fun `initial state is Loading or Success`() = runTest {
-        val viewModel = BooksViewModel(mockRepository)
+        val viewModel = BooksViewModel(mockRepository, mockSettingsRepository)
         viewModel.booksUiState.test {
             val initialState = awaitItem()
             // With UnconfinedTestDispatcher, Loading state may be skipped
@@ -143,7 +156,7 @@ class BooksViewModelTest {
 
     @Test
     fun `booksUiState emits Success with WantToRead books initially`() = runTest {
-        val viewModel = BooksViewModel(mockRepository)
+        val viewModel = BooksViewModel(mockRepository, mockSettingsRepository)
         viewModel.booksUiState.test {
             // With UnconfinedTestDispatcher, we get Success immediately
             // Initial filter is WantToRead, so we get 2 books (The Hobbit, Animal Farm)
@@ -159,7 +172,7 @@ class BooksViewModelTest {
     @Test
     fun `booksUiState emits Empty when repository returns empty list`() = runTest {
         every { mockRepository.getBooks() } returns flowOf(emptyList())
-        val emptyViewModel = BooksViewModel(mockRepository)
+        val emptyViewModel = BooksViewModel(mockRepository, mockSettingsRepository)
 
         emptyViewModel.booksUiState.test {
             // With UnconfinedTestDispatcher, we get Empty immediately
@@ -171,7 +184,7 @@ class BooksViewModelTest {
 
     @Test
     fun `updateFilters applies reading status filter correctly`() = runTest {
-        val viewModel = BooksViewModel(mockRepository)
+        val viewModel = BooksViewModel(mockRepository, mockSettingsRepository)
         viewModel.booksUiState.test {
             awaitItem() // Initial success with WantToRead filter
 
@@ -188,7 +201,7 @@ class BooksViewModelTest {
 
     @Test
     fun `updateFilters applies favorite filter correctly`() = runTest {
-        val viewModel = BooksViewModel(mockRepository)
+        val viewModel = BooksViewModel(mockRepository, mockSettingsRepository)
         viewModel.booksUiState.test {
             awaitItem() // Initial success with WantToRead filter (2 books, 1 favorite)
 
@@ -206,7 +219,7 @@ class BooksViewModelTest {
 
     @Test
     fun `updateFilters applies subject filter correctly`() = runTest {
-        val viewModel = BooksViewModel(mockRepository)
+        val viewModel = BooksViewModel(mockRepository, mockSettingsRepository)
         viewModel.booksUiState.test {
             awaitItem() // Initial success with WantToRead filter
 
@@ -226,7 +239,7 @@ class BooksViewModelTest {
 
     @Test
     fun `updateSort applies DateAddedNewest correctly`() = runTest {
-        val viewModel = BooksViewModel(mockRepository)
+        val viewModel = BooksViewModel(mockRepository, mockSettingsRepository)
         viewModel.booksUiState.test {
             val initialState = awaitItem() // Initial success (Loading is skipped with UnconfinedTestDispatcher)
             // Default sort is already DateAddedNewest, so just verify the initial state
@@ -241,7 +254,7 @@ class BooksViewModelTest {
     @Test
     fun `refresh calls repository sync and updates loading state`() = runTest {
         every { mockRepository.sync(any()) } returns Completable.complete()
-        val viewModel = BooksViewModel(mockRepository)
+        val viewModel = BooksViewModel(mockRepository, mockSettingsRepository)
 
         viewModel.refresh("testuser")
         advanceTimeBy(600) // Wait past debounce time
@@ -253,7 +266,7 @@ class BooksViewModelTest {
     @Test
     fun `refresh debounces multiple calls within 500ms`() = runTest {
         every { mockRepository.sync(any()) } returns Completable.complete()
-        val viewModel = BooksViewModel(mockRepository)
+        val viewModel = BooksViewModel(mockRepository, mockSettingsRepository)
 
         // Trigger multiple refreshes quickly
         viewModel.refresh("testuser")
@@ -269,7 +282,7 @@ class BooksViewModelTest {
     @Test
     fun `refresh handles network error and shows error message`() = runTest {
         every { mockRepository.sync(any()) } returns Completable.error(IOException("Network error"))
-        val viewModel = BooksViewModel(mockRepository)
+        val viewModel = BooksViewModel(mockRepository, mockSettingsRepository)
 
         viewModel.refresh("testuser")
         advanceTimeBy(600)
@@ -280,7 +293,7 @@ class BooksViewModelTest {
 
     @Test
     fun `filterOptions state reflects updates`() = runTest {
-        val viewModel = BooksViewModel(mockRepository)
+        val viewModel = BooksViewModel(mockRepository, mockSettingsRepository)
         val newFilters = FilterOptions(
             readingStatuses = setOf(ReadingStatus.CurrentlyReading),
             isFavorite = true,
@@ -293,7 +306,7 @@ class BooksViewModelTest {
 
     @Test
     fun `sortOption state reflects updates`() = runTest {
-        val viewModel = BooksViewModel(mockRepository)
+        val viewModel = BooksViewModel(mockRepository, mockSettingsRepository)
         viewModel.updateSort(SortOption.TitleAscending)
         viewModel.sortOption.value shouldBe SortOption.TitleAscending
     }

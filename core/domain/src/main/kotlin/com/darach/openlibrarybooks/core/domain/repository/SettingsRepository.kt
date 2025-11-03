@@ -1,6 +1,8 @@
 package com.darach.openlibrarybooks.core.domain.repository
 
+import com.darach.openlibrarybooks.core.domain.model.FilterOptions
 import com.darach.openlibrarybooks.core.domain.model.Settings
+import com.darach.openlibrarybooks.core.domain.model.SortOption
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Single
 import kotlinx.coroutines.flow.Flow
@@ -89,6 +91,26 @@ interface SettingsRepository {
      * @return Completable that completes when the timestamp is updated
      */
     fun updateLastSyncTimestamp(timestamp: Long): Completable
+
+    /**
+     * Update the sort option for book lists.
+     *
+     * Sets the preferred sorting method for displaying books.
+     *
+     * @param sortOption The new sort option
+     * @return Completable that completes when the setting is updated
+     */
+    fun updateSortOption(sortOption: SortOption): Completable
+
+    /**
+     * Update the filter options for book lists.
+     *
+     * Sets the active filters for displaying books.
+     *
+     * @param filterOptions The new filter options
+     * @return Completable that completes when the setting is updated
+     */
+    fun updateFilterOptions(filterOptions: FilterOptions): Completable
 
     /**
      * Clear all settings and reset to defaults.

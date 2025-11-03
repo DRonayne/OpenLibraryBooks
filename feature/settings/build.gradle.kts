@@ -6,6 +6,14 @@ plugins {
 android {
     namespace = "com.darach.openlibrarybooks.feature.settings"
 
+    defaultConfig {
+        buildConfigField("String", "VERSION_NAME", "\"1.0.0\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1,COPYRIGHT}"
@@ -33,5 +41,9 @@ dependencies {
 
     implementation(libs.androidx.hilt.navigation.compose)
 
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
     testImplementation(libs.turbine)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.kotest.assertions.core)
 }

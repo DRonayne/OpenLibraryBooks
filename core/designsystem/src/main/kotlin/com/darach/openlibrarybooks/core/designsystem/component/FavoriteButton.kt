@@ -21,6 +21,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
 import com.darach.openlibrarybooks.core.designsystem.theme.goldOchre
+import com.darach.openlibrarybooks.core.designsystem.theme.primaryDark
+import com.darach.openlibrarybooks.core.designsystem.theme.primaryLight
 
 /**
  * A favourite button with a heart icon that animates when toggled.
@@ -41,6 +43,13 @@ fun FavoriteIconButton(isFavorite: Boolean, onToggle: () -> Unit, modifier: Modi
         label = "favorite_scale",
     )
 
+    // Check if we're using static (green/gold) colours or dynamic theming
+    val currentPrimary = MaterialTheme.colorScheme.primary
+    val isUsingStaticColors = currentPrimary == primaryLight || currentPrimary == primaryDark
+
+    // Use gold for non-dynamic theme, tertiary for dynamic themes
+    val iconTint = if (isUsingStaticColors) goldOchre else MaterialTheme.colorScheme.tertiary
+
     IconButton(
         onClick = onToggle,
         modifier = modifier.scale(scale),
@@ -51,7 +60,7 @@ fun FavoriteIconButton(isFavorite: Boolean, onToggle: () -> Unit, modifier: Modi
         Icon(
             imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
             contentDescription = if (isFavorite) "Remove from favourites" else "Add to favourites",
-            tint = goldOchre,
+            tint = iconTint,
         )
     }
 }
@@ -76,6 +85,17 @@ fun FavoriteFilledIconButton(isFavorite: Boolean, onToggle: () -> Unit, modifier
         label = "favorite_scale",
     )
 
+    // Check if we're using static (green/gold) colours or dynamic theming
+    val currentPrimary = MaterialTheme.colorScheme.primary
+    val isUsingStaticColors = currentPrimary == primaryLight || currentPrimary == primaryDark
+
+    // Use gold for non-dynamic theme, tertiary for dynamic themes
+    val favoriteIconTint = if (isUsingStaticColors) {
+        goldOchre
+    } else {
+        MaterialTheme.colorScheme.tertiary
+    }
+
     FilledIconButton(
         onClick = onToggle,
         modifier = modifier.scale(scale),
@@ -90,7 +110,7 @@ fun FavoriteFilledIconButton(isFavorite: Boolean, onToggle: () -> Unit, modifier
         Icon(
             imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
             contentDescription = if (isFavorite) "Remove from favourites" else "Add to favourites",
-            tint = goldOchre,
+            tint = if (isFavorite) favoriteIconTint else MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -103,9 +123,10 @@ fun FavoriteFilledIconButton(isFavorite: Boolean, onToggle: () -> Unit, modifier
  *
  * @param isFavorite Whether the item is currently favourited
  * @param onToggle Callback when the button is clicked
+ * @param modifier Optional modifier for custom styling and positioning
  */
 @Composable
-fun BoxScope.FavoriteIconButton(isFavorite: Boolean, onToggle: () -> Unit) {
+fun BoxScope.FavoriteIconButton(isFavorite: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
     // Animate scale when favourite status changes
     val scale by animateFloatAsState(
         targetValue = if (isFavorite) 1.1f else 1f,
@@ -113,9 +134,20 @@ fun BoxScope.FavoriteIconButton(isFavorite: Boolean, onToggle: () -> Unit) {
         label = "favorite_scale",
     )
 
+    // Check if we're using static (green/gold) colours or dynamic theming
+    val currentPrimary = MaterialTheme.colorScheme.primary
+    val isUsingStaticColors = currentPrimary == primaryLight || currentPrimary == primaryDark
+
+    // Use gold for non-dynamic theme, tertiary for dynamic themes
+    val favoriteIconTint = if (isUsingStaticColors) {
+        goldOchre
+    } else {
+        MaterialTheme.colorScheme.tertiary
+    }
+
     IconButton(
         onClick = onToggle,
-        modifier = Modifier
+        modifier = modifier
             .align(Alignment.TopEnd)
             .padding(4.dp)
             .scale(scale),
@@ -126,7 +158,7 @@ fun BoxScope.FavoriteIconButton(isFavorite: Boolean, onToggle: () -> Unit) {
         Icon(
             imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
             contentDescription = if (isFavorite) "Remove from favourites" else "Add to favourites",
-            tint = if (isFavorite) goldOchre else MaterialTheme.colorScheme.onSurface,
+            tint = if (isFavorite) favoriteIconTint else MaterialTheme.colorScheme.onSurface,
         )
     }
 }

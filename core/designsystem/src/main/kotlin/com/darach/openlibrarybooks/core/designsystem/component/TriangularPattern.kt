@@ -23,10 +23,9 @@ private const val GRID_PADDING = 4
 /**
  * Reusable triangular geometric background pattern.
  *
- * Creates a repeating grid of right-angled triangles with alternating green tones
+ * Creates a repeating grid of right-angled triangles with alternating tones
  * to produce a faceted texture effect. The pattern adapts to light/dark themes
- * and optionally supports dynamic color theming. Includes a primary color overlay
- * at 75% opacity.
+ * and optionally supports dynamic color theming. Can include a primary color overlay.
  *
  * The pattern is stable and won't randomise on recomposition - uses a fixed seed
  * for consistent pattern generation.
@@ -34,13 +33,22 @@ private const val GRID_PADDING = 4
  * @param modifier Modifier to be applied to the pattern
  * @param triangleSize Size of each triangle's base/height in dp
  * @param useDynamicColor Whether to use Material3 dynamic colors from theme instead of fixed greens
+ * @param customColors Optional custom color palette to use instead of green or dynamic colors
+ * @param overlayColor Optional overlay color to apply on top of the pattern.
+ *        Defaults to primary at 75% opacity. Pass Color.Transparent for no overlay.
  */
 @Composable
-fun TriangularPattern(modifier: Modifier = Modifier, triangleSize: Float = 280f, useDynamicColor: Boolean = false) {
+fun TriangularPattern(
+    modifier: Modifier = Modifier,
+    triangleSize: Float = 280f,
+    useDynamicColor: Boolean = false,
+    customColors: List<Color>? = null,
+    overlayColor: Color? = null,
+) {
     val isDarkTheme = isSystemInDarkTheme()
 
     // Get colors based on theme and dynamic color preference
-    val colors = if (useDynamicColor) {
+    val colors = customColors ?: if (useDynamicColor) {
         // Use Material3 color scheme for dynamic theming
         getDynamicPatternColors(isDarkTheme)
     } else {
@@ -48,8 +56,17 @@ fun TriangularPattern(modifier: Modifier = Modifier, triangleSize: Float = 280f,
         getGreenPatternColors(isDarkTheme)
     }
 
-    // Capture the overlay color outside Canvas since MaterialTheme can't be accessed inside
-    val overlayColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)
+    // Determine the overlay color: use provided overlay, or adapt based on theme mode
+    val finalOverlayColor = overlayColor ?: if (customColors != null) {
+        // Custom colors = no overlay (used in Settings)
+        Color.Transparent
+    } else if (useDynamicColor) {
+        // Dynamic theme = lighter overlay to maintain text visibility
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+    } else {
+        // Non-dynamic (green/gold) theme = stronger overlay for brand color
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)
+    }
 
     Canvas(modifier = modifier) {
         val width = size.width
@@ -84,11 +101,13 @@ fun TriangularPattern(modifier: Modifier = Modifier, triangleSize: Float = 280f,
             }
         }
 
-        // Draw overlay with primary color at 75% opacity
-        drawRect(
-            color = overlayColor,
-            size = size,
-        )
+        // Draw overlay if not transparent
+        if (finalOverlayColor != Color.Transparent) {
+            drawRect(
+                color = finalOverlayColor,
+                size = size,
+            )
+        }
     }
 }
 

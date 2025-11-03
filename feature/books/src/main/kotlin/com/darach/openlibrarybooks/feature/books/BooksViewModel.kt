@@ -9,6 +9,7 @@ import com.darach.openlibrarybooks.core.domain.model.FilterOptions
 import com.darach.openlibrarybooks.core.domain.model.ReadingStatus
 import com.darach.openlibrarybooks.core.domain.model.SortOption
 import com.darach.openlibrarybooks.core.domain.repository.BooksRepository
+import com.darach.openlibrarybooks.core.domain.repository.SettingsRepository
 import com.darach.openlibrarybooks.feature.books.BookFilters.applyFilters
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -38,14 +39,19 @@ import javax.inject.Inject
  * reactive UI state to Compose screens.
  *
  * @property booksRepository Repository for accessing book data
+ * @property settingsRepository Repository for accessing user settings
  */
 @HiltViewModel
-class BooksViewModel @Inject constructor(private val booksRepository: BooksRepository) : ViewModel() {
+class BooksViewModel @Inject constructor(
+    private val booksRepository: BooksRepository,
+    private val settingsRepository: SettingsRepository,
+) : ViewModel() {
 
     private val compositeDisposable = CompositeDisposable()
 
     companion object {
         private const val TAG = "BooksViewModel"
+        private const val SIX_HOURS_IN_MILLIS = 6 * 60 * 60 * 1000L
     }
 
     // Mutable state for filters and sorting
@@ -172,6 +178,31 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
 
     init {
         setupRefreshHandler()
+        checkAutoRefresh()
+    }
+
+    /**
+     * Checks if an auto-refresh is needed on app start.
+     *
+     * Silently refreshes the book database if 6+ hours have passed since
+     * the last sync. This ensures users see fresh data without manual intervention.
+     */
+    private fun checkAutoRefresh() {
+        viewModelScope.launch {
+            settingsRepository.getSettings().collect { settings ->
+                val currentTime = System.currentTimeMillis()
+                val timeSinceLastSync = currentTime - settings.lastSyncTimestamp
+
+                if (timeSinceLastSync >= SIX_HOURS_IN_MILLIS && settings.username.isNotEmpty()) {
+                    Log.i(TAG, "Auto-refresh triggered: ${timeSinceLastSync / 1000 / 60} minutes since last sync")
+                    performRefresh(settings.username, silent = true)
+                } else {
+                    Log.d(TAG, "Auto-refresh skipped: only ${timeSinceLastSync / 1000 / 60} minutes since last sync")
+                }
+                // Only check once on init, don't keep collecting
+                return@collect
+            }
+        }
     }
 
     /**
@@ -186,7 +217,7 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
             refreshTrigger
                 .debounce(500)
                 .collect { username ->
-                    performRefresh(username)
+                    performRefresh(username, silent = false)
                 }
         }
         Log.i(TAG, "Refresh handler setup complete with 500ms debounce")
@@ -211,27 +242,35 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
      * Performs the actual refresh operation by syncing with the repository.
      *
      * @param username Open Library username to sync books for
+     * @param silent If true, don't update the loading state (for background refreshes)
      */
-    private fun performRefresh(username: String) {
+    private fun performRefresh(username: String, silent: Boolean = false) {
         if (_isRefreshing.value) {
             Log.d(TAG, "Refresh already in progress for username: $username, skipping")
             return
         }
 
-        Log.d(TAG, "Starting refresh for username: $username")
-        _isRefreshing.value = true
-        _errorMessage.value = null
+        Log.d(TAG, "Starting refresh for username: $username (silent: $silent)")
+        if (!silent) {
+            _isRefreshing.value = true
+            _errorMessage.value = null
+        }
 
         booksRepository.sync(username)
+            .andThen(settingsRepository.updateLastSyncTimestamp(System.currentTimeMillis()))
             .subscribeBy(
                 onComplete = {
                     Log.i(TAG, "Refresh completed successfully for username: $username")
-                    _isRefreshing.value = false
+                    if (!silent) {
+                        _isRefreshing.value = false
+                    }
                 },
                 onError = { throwable ->
                     Log.e(TAG, "Refresh failed for username: $username", throwable)
-                    _isRefreshing.value = false
-                    _errorMessage.value = handleRefreshError(throwable)
+                    if (!silent) {
+                        _isRefreshing.value = false
+                        _errorMessage.value = handleRefreshError(throwable)
+                    }
                 },
             )
             .addTo(compositeDisposable)

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -60,7 +61,7 @@ fun BookCover(coverUrl: String?, title: String, modifier: Modifier = Modifier, w
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = Icons.Default.MenuBook,
+                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
                     contentDescription = "No cover available",
                     modifier = Modifier.size(48.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,

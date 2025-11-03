@@ -30,6 +30,8 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.rx3)
 
+    implementation(libs.androidx.datastore.preferences)
+
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.turbine)

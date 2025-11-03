@@ -1,10 +1,10 @@
 package com.darach.openlibrarybooks.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Book
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -50,8 +50,8 @@ data class BookDetailsRoute(val workId: String, val editionId: String? = null)
 enum class TopLevelDestination(val label: String, val iconSelected: ImageVector, val iconUnselected: ImageVector) {
     BOOKS(
         label = "Books",
-        iconSelected = Icons.Filled.Book,
-        iconUnselected = Icons.Outlined.Book,
+        iconSelected = Icons.AutoMirrored.Filled.MenuBook,
+        iconUnselected = Icons.AutoMirrored.Outlined.MenuBook,
     ),
     FAVOURITES(
         label = "Favourites",

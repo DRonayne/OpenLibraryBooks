@@ -7,7 +7,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -85,6 +84,7 @@ import com.darach.openlibrarybooks.core.designsystem.component.OfflineIndicator
 import com.darach.openlibrarybooks.core.designsystem.component.TriangularPattern
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
 import com.darach.openlibrarybooks.core.designsystem.theme.goldOchre
+import com.darach.openlibrarybooks.core.designsystem.theme.primaryDark
 import com.darach.openlibrarybooks.core.designsystem.theme.primaryLight
 import com.darach.openlibrarybooks.core.domain.model.Book
 import com.darach.openlibrarybooks.core.domain.model.FilterOptions
@@ -423,10 +423,13 @@ private fun BooksTopAppBar(
     // Calculate active filter count (excluding reading status which is now in the top bar)
     val activeFilterCount = calculateActiveFilterCount(filterOptions)
 
-    // Determine content color and theme properties
-    val isDarkTheme = isSystemInDarkTheme()
-    val contentColor = if (isDarkTheme) Color.White.copy(alpha = 0.95f) else Color.White
-    val isUsingStaticColors = MaterialTheme.colorScheme.primary == primaryLight
+    // Determine if we're using static (green/gold) colours or dynamic theming
+    // by checking if the current primary matches either light or dark static scheme
+    val currentPrimary = MaterialTheme.colorScheme.primary
+    val isUsingStaticColors = currentPrimary == primaryLight || currentPrimary == primaryDark
+
+    // Use Material3 onPrimary for proper contrast in all theme modes
+    val contentColor = MaterialTheme.colorScheme.onPrimary
 
     Box(
         modifier = modifier
@@ -468,7 +471,7 @@ private fun BooksTopAppBar(
             ReadingStatusTabs(
                 filterOptions = filterOptions,
                 onReadingStatusChange = onReadingStatusChange,
-                shouldUseGoldOchre = !isDarkTheme && isUsingStaticColors,
+                shouldUseGoldOchre = isUsingStaticColors,
             )
         }
     }

@@ -9,6 +9,8 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -32,73 +34,80 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            OpenLibraryTheme {
-                OpenLibraryApp()
-            }
+            OpenLibraryApp()
         }
     }
 }
 
 /**
  * Main app composable that sets up navigation and adaptive UI.
+ * Observes user settings to apply dark mode and dynamic theming.
  */
 @Composable
-private fun OpenLibraryApp() {
+private fun OpenLibraryApp(viewModel: AppViewModel = hiltViewModel()) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    NavigationSuiteScaffold(
-        modifier = Modifier.fillMaxSize(),
-        navigationSuiteItems = {
-            TopLevelDestination.entries.forEach { destination ->
-                val isSelected = currentDestination?.hierarchy?.any { navDest ->
-                    when (destination) {
-                        TopLevelDestination.BOOKS -> navDest.hasRoute(BooksRoute::class)
-                        TopLevelDestination.FAVOURITES -> navDest.hasRoute(FavouritesRoute::class)
-                        TopLevelDestination.SETTINGS -> navDest.hasRoute(SettingsRoute::class)
-                    }
-                } == true
+    // Observe settings for theme configuration
+    val settings by viewModel.settings.collectAsStateWithLifecycle()
 
-                item(
-                    icon = {
-                        androidx.compose.material3.Icon(
-                            imageVector = if (isSelected) {
-                                destination.iconSelected
-                            } else {
-                                destination.iconUnselected
-                            },
-                            contentDescription = destination.label,
-                        )
-                    },
-                    label = { androidx.compose.material3.Text(destination.label) },
-                    selected = isSelected,
-                    onClick = {
-                        // Navigate to the selected destination, clearing back stack to start
-                        val targetRoute = when (destination) {
-                            TopLevelDestination.BOOKS -> BooksRoute
-                            TopLevelDestination.FAVOURITES -> FavouritesRoute
-                            TopLevelDestination.SETTINGS -> SettingsRoute
-                        }
-
-                        navController.navigate(targetRoute) {
-                            // Pop up to the start destination and save state
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            // Avoid multiple copies of the same destination
-                            launchSingleTop = true
-                            // Restore state when navigating back to a destination
-                            restoreState = true
-                        }
-                    },
-                )
-            }
-        },
+    OpenLibraryTheme(
+        darkTheme = settings.darkModeEnabled,
+        dynamicColor = settings.dynamicThemeEnabled,
     ) {
-        OpenLibraryNavHost(
-            navController = navController,
+        NavigationSuiteScaffold(
             modifier = Modifier.fillMaxSize(),
-        )
+            navigationSuiteItems = {
+                TopLevelDestination.entries.forEach { destination ->
+                    val isSelected = currentDestination?.hierarchy?.any { navDest ->
+                        when (destination) {
+                            TopLevelDestination.BOOKS -> navDest.hasRoute(BooksRoute::class)
+                            TopLevelDestination.FAVOURITES -> navDest.hasRoute(FavouritesRoute::class)
+                            TopLevelDestination.SETTINGS -> navDest.hasRoute(SettingsRoute::class)
+                        }
+                    } == true
+
+                    item(
+                        icon = {
+                            androidx.compose.material3.Icon(
+                                imageVector = if (isSelected) {
+                                    destination.iconSelected
+                                } else {
+                                    destination.iconUnselected
+                                },
+                                contentDescription = destination.label,
+                            )
+                        },
+                        label = { androidx.compose.material3.Text(destination.label) },
+                        selected = isSelected,
+                        onClick = {
+                            // Navigate to the selected destination, clearing back stack to start
+                            val targetRoute = when (destination) {
+                                TopLevelDestination.BOOKS -> BooksRoute
+                                TopLevelDestination.FAVOURITES -> FavouritesRoute
+                                TopLevelDestination.SETTINGS -> SettingsRoute
+                            }
+
+                            navController.navigate(targetRoute) {
+                                // Pop up to the start destination and save state
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                // Avoid multiple copies of the same destination
+                                launchSingleTop = true
+                                // Restore state when navigating back to a destination
+                                restoreState = true
+                            }
+                        },
+                    )
+                }
+            },
+        ) {
+            OpenLibraryNavHost(
+                navController = navController,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     }
 }
