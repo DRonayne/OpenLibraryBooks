@@ -44,9 +44,18 @@ dependencies {
     // Core modules
     implementation(project(":core:designsystem"))
 
+    // Feature modules
+    implementation(project(":feature:books"))
+    implementation(project(":feature:favourites"))
+    implementation(project(":feature:settings"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+
+    // Material 3 Adaptive Navigation
+    implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
+    implementation(libs.androidx.compose.material.icons.extended)
 
     // WorkManager with Hilt and RxJava3
     implementation(libs.androidx.work.runtime.ktx)
