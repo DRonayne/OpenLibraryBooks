@@ -1,7 +1,6 @@
 plugins {
     id("openlibrarybooks.android.library")
     id("openlibrarybooks.android.hilt")
-    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -13,11 +12,11 @@ dependencies {
     implementation(project(":core:domain"))
 
     implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.kotlinx.serialization)
+    implementation(libs.retrofit.converter.gson)
     implementation(libs.retrofit.adapter.rxjava3)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging.interceptor)
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.gson)
 
     implementation(libs.rxjava3)
     implementation(libs.rxandroid)

@@ -9,4 +9,7 @@ android {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+
+    // DataStore for preferences
+    implementation(libs.androidx.datastore.preferences)
 }

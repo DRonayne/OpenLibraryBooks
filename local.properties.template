@@ -1,0 +1,10 @@
+# local.properties Template
+
+# ======================================================================================
+# Open Library Configuration
+# ======================================================================================
+
+# Your Open Library username for fetching reading lists
+# Format: your_openlibrary_username
+# Example: DEFAULT_USERNAME=john_doe
+DEFAULT_USERNAME=your_openlibrary_username

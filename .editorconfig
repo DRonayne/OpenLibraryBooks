@@ -1,0 +1,4 @@
+[*.{kt,kts}]
+# Allow PascalCase for Composable functions (Compose convention)
+ktlint_function-naming = disabled
+ktlint_standard_function-naming = disabled
