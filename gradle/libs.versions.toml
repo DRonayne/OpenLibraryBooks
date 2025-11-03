@@ -67,6 +67,7 @@ mockk = "1.14.6"
 kotest = "6.0.4"
 turbine = "1.2.1"
 kover = "0.9.3"
+uiTextGoogleFonts = "1.9.4"
 
 [libraries]
 # AndroidX Core
@@ -160,6 +161,7 @@ kotest-property = { group = "io.kotest", name = "kotest-property", version.ref =
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
 konsist = { group = "com.lemonappdev", name = "konsist", version.ref = "konsist" }
+androidx-compose-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
