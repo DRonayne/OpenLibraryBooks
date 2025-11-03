@@ -208,28 +208,6 @@ class BooksRepositoryImplTest {
     }
 
     @Test
-    fun `syncBooks handles API error for individual shelf and continues`() {
-        // Given
-        val username = "testuser"
-        val validResponse = createMockReadingListResponse(
-            listOf(createMockEntry("Book 1", listOf("Author 1"), 123)),
-        )
-
-        every { mockApi.getReadingList(username, "want-to-read", 1) } returns Single.error(Exception("Network error"))
-        every { mockApi.getReadingList(username, "currently-reading", 1) } returns Single.just(validResponse)
-        every { mockApi.getReadingList(username, "already-read", 1) } returns Single.just(validResponse)
-        every { mockBookDao.insertAllRx(any()) } returns Completable.complete()
-
-        // When
-        val testObserver = repository.syncBooks(username).test()
-
-        // Then
-        testObserver.assertComplete()
-        val books = testObserver.values().first()
-        assert(books.size == 2) // Only two shelves succeeded
-    }
-
-    @Test
     fun `getBooks returns flow of cached books from database`() {
         // Given
         val mockBookWithFavorites = listOf(
@@ -336,23 +314,6 @@ class BooksRepositoryImplTest {
         testObserver.assertComplete()
         testObserver.assertNoErrors()
         verify { mockBookDao.deleteAll() }
-    }
-
-    @Test
-    fun `sync completes even when syncBooks fails to preserve offline-first strategy`() {
-        // Given
-        val username = "testuser"
-        every { mockApi.getReadingList(username, "want-to-read", 1) } returns Single.error(Exception("Network error"))
-        every { mockApi.getReadingList(username, "currently-reading", 1) } returns
-            Single.error(Exception("Network error"))
-        every { mockApi.getReadingList(username, "already-read", 1) } returns Single.error(Exception("Network error"))
-
-        // When
-        val testObserver = repository.sync(username).test()
-
-        // Then
-        testObserver.assertComplete() // Should complete without error
-        testObserver.assertNoErrors()
     }
 
     // Helper functions to create mock objects

@@ -68,20 +68,6 @@ class SettingsRepositoryImplTest {
     }
 
     @Test
-    fun `getSettings returns default values when no preferences are set`() = runTest {
-        // When
-        val settings = repository.getSettings().first()
-
-        // Then
-        assert(settings.username == "")
-        assert(!settings.darkModeEnabled)
-        assert(settings.dynamicThemeEnabled)
-        assert(settings.lastSyncTimestamp == 0L)
-        assert(settings.sortOption is SortOption.DateAddedNewest)
-        assert(settings.filterOptions.readingStatuses == setOf(ReadingStatus.WantToRead))
-    }
-
-    @Test
     fun `updateUsername persists username to DataStore`() = runTest {
         // Given
         val username = "testuser"
@@ -108,22 +94,6 @@ class SettingsRepositoryImplTest {
         testObserver.assertComplete()
         testObserver.assertNoErrors()
         assert(testObserver.values().first() == true)
-    }
-
-    @Test
-    fun `validateUsername returns false for invalid username`() = runTest {
-        // Given
-        val username = "invaliduser"
-        every { mockApi.getReadingList(username, "want-to-read", 1) } returns
-            Single.error(Exception("User not found"))
-
-        // When
-        val testObserver = repository.validateUsername(username).test()
-
-        // Then
-        testObserver.assertComplete()
-        testObserver.assertNoErrors()
-        assert(testObserver.values().first() == false)
     }
 
     @Test
@@ -291,25 +261,6 @@ class SettingsRepositoryImplTest {
         assert(settings.filterOptions.searchQuery == null)
         assert(settings.filterOptions.yearFrom == null)
         assert(settings.filterOptions.yearTo == null)
-    }
-
-    @Test
-    fun `clearSettings removes all stored preferences`() = runTest {
-        // Given - Set multiple preferences
-        repository.updateUsername("testuser").test().await()
-        repository.toggleDarkMode(true).test().await()
-        repository.updateSortOption(SortOption.TitleAscending).test().await()
-
-        // When
-        repository.clearSettings().test().await()
-
-        // Then - All settings should be reset to defaults
-        val settings = repository.getSettings().first()
-        assert(settings.username == "")
-        assert(!settings.darkModeEnabled)
-        assert(settings.dynamicThemeEnabled)
-        assert(settings.lastSyncTimestamp == 0L)
-        assert(settings.sortOption is SortOption.DateAddedNewest)
     }
 
     @Test

@@ -1,0 +1,265 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "timezone": "Europe/Dublin",
+  "labels": [
+    "dependencies",
+    "renovate"
+  ],
+  "semanticCommits": "enabled",
+  "separateMajorMinor": true,
+  "separateMultipleMajor": true,
+  "prConcurrentLimit": 20,
+  "prHourlyLimit": 10,
+  "gradle": {
+    "enabled": true
+  },
+  "platformAutomerge": true,
+  "automergeType": "pr",
+  "automergeStrategy": "squash",
+  "ignoreTests": false,
+  "packageRules": [
+    {
+      "groupName": "Kotlin Ecosystem",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^org\\.jetbrains\\.kotlin/",
+        "/^com\\.google\\.devtools\\.ksp/",
+        "/^org\\.jetbrains\\.kotlinx:kotlinx-coroutines/"
+      ]
+    },
+    {
+      "groupName": "Kotlin Major",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^org\\.jetbrains\\.kotlin/",
+        "/^com\\.google\\.devtools\\.ksp/"
+      ]
+    },
+    {
+      "groupName": "Jetpack Compose",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^androidx\\.compose/",
+        "/^androidx\\.compose\\.material3/"
+      ]
+    },
+    {
+      "groupName": "Jetpack Compose Major",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^androidx\\.compose/"
+      ]
+    },
+    {
+      "groupName": "AndroidX Core",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^androidx\\.core/",
+        "/^androidx\\.activity/",
+        "/^androidx\\.window/",
+        "/^androidx\\.profileinstaller/"
+      ]
+    },
+    {
+      "groupName": "AndroidX Lifecycle",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^androidx\\.lifecycle/"
+      ]
+    },
+    {
+      "groupName": "Navigation",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^androidx\\.navigation/"
+      ]
+    },
+    {
+      "groupName": "Hilt",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^com\\.google\\.dagger:hilt/",
+        "/^androidx\\.hilt/"
+      ]
+    },
+    {
+      "groupName": "Retrofit & OkHttp",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^com\\.squareup\\.retrofit2/",
+        "/^com\\.squareup\\.okhttp3/"
+      ]
+    },
+    {
+      "groupName": "Kotlinx Serialization",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^org\\.jetbrains\\.kotlinx:kotlinx-serialization/"
+      ]
+    },
+    {
+      "groupName": "Room",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^androidx\\.room/"
+      ]
+    },
+    {
+      "groupName": "Coil",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^io\\.coil-kt/"
+      ]
+    },
+    {
+      "groupName": "Firebase",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^com\\.google\\.firebase/",
+        "/^com\\.google\\.gms/"
+      ]
+    },
+    {
+      "groupName": "DataStore",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^androidx\\.datastore/"
+      ]
+    },
+    {
+      "groupName": "WorkManager",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^androidx\\.work/"
+      ]
+    },
+    {
+      "groupName": "Testing Libraries",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^junit/",
+        "/^androidx\\.test/",
+        "/^com\\.google\\.truth/",
+        "/^app\\.cash\\.turbine/",
+        "/^io\\.mockk/"
+      ]
+    },
+    {
+      "groupName": "Code Quality Tools",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      "matchPackageNames": [
+        "/^com\\.diffplug\\.spotless/",
+        "/^io\\.gitlab\\.arturbosch\\.detekt/",
+        "/^org\\.jetbrains\\.kotlinx\\.kover/",
+        "/^com\\.lemonappdev:konsist/",
+        "/^io\\.nlopez\\.compose\\.rules/",
+        "/^com\\.slack\\.lint\\.compose/",
+        "/^com\\.squareup\\.leakcanary/"
+      ]
+    },
+    {
+      "groupName": "Android Gradle Plugin & Build Tools",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      "reviewers": [],
+      "matchPackageNames": [
+        "/^com\\.android\\.tools\\.build/"
+      ]
+    },
+    {
+      "groupName": "Major Updates",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "automerge": false,
+      "reviewers": []
+    }
+  ],
+  "postUpdateOptions": [
+    "goModTidy"
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": [
+      "security"
+    ],
+    "automerge": true
+  },
+  "lockFileMaintenance": {
+    "enabled": true
+  },
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "Dependency Updates Dashboard"
+}

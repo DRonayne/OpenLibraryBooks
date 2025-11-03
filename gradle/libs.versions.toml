@@ -66,6 +66,7 @@ detektComposeRules = "0.4.27"
 spotless = "8.0.0"
 ktlint = "1.5.0"
 konsist = "0.17.3"
+modulegraph = "0.13.0"
 
 # Testing
 junit = "4.13.2"
@@ -200,6 +201,7 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+modulegraph = { id = "dev.iurysouza.modulegraph", version.ref = "modulegraph" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlytics" }
 firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "firebasePerf" }

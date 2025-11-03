@@ -12,10 +12,11 @@ class ErrorStateTest {
         // Verify all error types exist
         val errorTypes = ErrorType.values()
 
-        assertEquals(3, errorTypes.size)
+        assertEquals(4, errorTypes.size)
         assertEquals(ErrorType.GENERIC, errorTypes[0])
         assertEquals(ErrorType.NETWORK, errorTypes[1])
-        assertEquals(ErrorType.SERVER, errorTypes[2])
+        assertEquals(ErrorType.TIMEOUT, errorTypes[2])
+        assertEquals(ErrorType.SERVER, errorTypes[3])
     }
 
     @Test

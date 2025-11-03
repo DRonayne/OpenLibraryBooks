@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.kover)
     alias(libs.plugins.detekt) apply false
     alias(libs.plugins.spotless) apply false
+    alias(libs.plugins.modulegraph)
     alias(libs.plugins.google.services) apply false
     alias(libs.plugins.firebase.crashlytics) apply false
     alias(libs.plugins.firebase.perf) apply false
@@ -25,4 +26,13 @@ kover {
             }
         }
     }
+}
+
+// Configure Module Graph to visualise module dependencies
+moduleGraphConfig {
+    readmePath.set("./README.md")
+    heading.set("## Module Graph")
+    showFullPath.set(false)
+    theme.set(dev.iurysouza.modulegraph.Theme.DARK)
+    orientation.set(dev.iurysouza.modulegraph.Orientation.LEFT_TO_RIGHT)
 }
