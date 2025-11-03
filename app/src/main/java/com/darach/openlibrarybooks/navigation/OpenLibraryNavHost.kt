@@ -10,6 +10,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.darach.openlibrarybooks.BuildConfig
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
 import com.darach.openlibrarybooks.feature.books.BooksScreen
 import com.darach.openlibrarybooks.feature.favourites.FavouritesScreen
@@ -31,7 +32,7 @@ fun OpenLibraryNavHost(navController: NavHostController, modifier: Modifier = Mo
     ) {
         // Books screen - main reading list
         composable<BooksRoute> {
-            BooksScreen()
+            BooksScreen(username = BuildConfig.DEFAULT_USERNAME)
         }
 
         // Favourites screen - favourite books

@@ -57,23 +57,29 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
      * @param username Open Library username
      * @return Single emitting the complete list of fetched books
      */
-    override fun syncBooks(username: String): Single<List<Book>> = Single.zip(
-        fetchShelf(username, SHELF_WANT_TO_READ, ReadingStatus.WantToRead),
-        fetchShelf(username, SHELF_CURRENTLY_READING, ReadingStatus.CurrentlyReading),
-        fetchShelf(username, SHELF_ALREADY_READ, ReadingStatus.AlreadyRead),
-    ) { wantToRead, currentlyReading, alreadyRead ->
-        wantToRead + currentlyReading + alreadyRead
+    override fun syncBooks(username: String): Single<List<Book>> {
+        Log.i(TAG, "Starting book synchronisation for user: $username")
+        return Single.zip(
+            fetchShelf(username, SHELF_WANT_TO_READ, ReadingStatus.WantToRead),
+            fetchShelf(username, SHELF_CURRENTLY_READING, ReadingStatus.CurrentlyReading),
+            fetchShelf(username, SHELF_ALREADY_READ, ReadingStatus.AlreadyRead),
+        ) { wantToRead, currentlyReading, alreadyRead ->
+            wantToRead + currentlyReading + alreadyRead
+        }
+            .subscribeOn(Schedulers.io())
+            .flatMap { books ->
+                // Store books in database
+                val entities = books.map { it.toBookEntity() }
+                bookDao.insertAllRx(entities)
+                    .andThen(Single.just(books))
+            }
+            .doOnSuccess { books ->
+                Log.i(TAG, "Successfully synchronised ${books.size} books for user: $username")
+            }
+            .doOnError { error ->
+                Log.e(TAG, "Error syncing books for user: $username", error)
+            }
     }
-        .subscribeOn(Schedulers.io())
-        .flatMap { books ->
-            // Store books in database
-            val entities = books.map { it.toBookEntity() }
-            bookDao.insertAllRx(entities)
-                .andThen(Single.just(books))
-        }
-        .doOnError { error ->
-            Log.e(TAG, "Error syncing books for user: $username", error)
-        }
 
     /**
      * Fetch books from a specific shelf.
@@ -86,11 +92,12 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
      * @param status Reading status to assign to books
      * @return Single emitting list of books from the shelf
      */
-    private fun fetchShelf(username: String, shelf: String, status: ReadingStatus): Single<List<Book>> =
-        api.getReadingList(username, shelf, page = 1)
+    private fun fetchShelf(username: String, shelf: String, status: ReadingStatus): Single<List<Book>> {
+        Log.d(TAG, "Fetching shelf '$shelf' for user: $username")
+        return api.getReadingList(username, shelf, page = 1)
             .subscribeOn(Schedulers.io())
             .map { response ->
-                response.readingLogEntries
+                val books = response.readingLogEntries
                     ?.take(BOOKS_PER_SHELF)
                     ?.mapNotNull { entry ->
                         try {
@@ -101,11 +108,14 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
                         }
                     }
                     ?: emptyList()
+                Log.i(TAG, "Fetched ${books.size} books from shelf '$shelf' for user: $username")
+                books
             }
             .onErrorReturn { error ->
                 Log.e(TAG, "Error fetching shelf $shelf: ${error.message}")
                 emptyList()
             }
+    }
 
     /**
      * Map a reading list entry DTO to a domain Book model.
@@ -256,10 +266,14 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
     override fun getWorkDetails(workKey: String): Single<WorkDetails> {
         // Extract key without the "/works/" prefix
         val key = workKey.removePrefix("/works/")
+        Log.i(TAG, "Fetching work details for key: $workKey")
 
         return api.getWork(key)
             .subscribeOn(Schedulers.io())
             .map { it.toDomain() }
+            .doOnSuccess { workDetails ->
+                Log.i(TAG, "Successfully fetched work details for key: $workKey (title: ${workDetails.title})")
+            }
             .doOnError { error ->
                 Log.e(TAG, "Error fetching work details for $workKey", error)
             }
@@ -277,10 +291,14 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
     override fun getEditionDetails(editionKey: String): Single<EditionDetails> {
         // Extract key without the "/books/" prefix
         val key = editionKey.removePrefix("/books/")
+        Log.i(TAG, "Fetching edition details for key: $editionKey")
 
         return api.getEdition(key)
             .subscribeOn(Schedulers.io())
             .map { it.toDomain() }
+            .doOnSuccess { editionDetails ->
+                Log.i(TAG, "Successfully fetched edition details for key: $editionKey (title: ${editionDetails.title})")
+            }
             .doOnError { error ->
                 Log.e(TAG, "Error fetching edition details for $editionKey", error)
             }
@@ -296,12 +314,18 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
      * @param username Open Library username to sync reading lists for
      * @return Completable that completes when sync is finished
      */
-    override fun sync(username: String): Completable = syncBooks(username)
-        .ignoreElement()
-        .onErrorComplete { error ->
-            Log.e(TAG, "Sync failed for user $username, keeping cached data", error)
-            true // Complete anyway to prevent error propagation
-        }
+    override fun sync(username: String): Completable {
+        Log.i(TAG, "Starting synchronisation for user: $username")
+        return syncBooks(username)
+            .doOnSuccess {
+                Log.i(TAG, "Synchronisation completed successfully for user: $username")
+            }
+            .ignoreElement()
+            .onErrorComplete { error ->
+                Log.e(TAG, "Sync failed for user $username, keeping cached data", error)
+                true // Complete anyway to prevent error propagation
+            }
+    }
 
     /**
      * Clear all cached books from the local database.
@@ -310,6 +334,15 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
      *
      * @return Completable that completes when cache is cleared
      */
-    override fun clearCache(): Completable = bookDao.deleteAll()
-        .subscribeOn(Schedulers.io())
+    override fun clearCache(): Completable {
+        Log.i(TAG, "Clearing all cached books from local database")
+        return bookDao.deleteAll()
+            .subscribeOn(Schedulers.io())
+            .doOnComplete {
+                Log.i(TAG, "Successfully cleared all cached books")
+            }
+            .doOnError { error ->
+                Log.e(TAG, "Failed to clear cached books", error)
+            }
+    }
 }

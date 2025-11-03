@@ -44,6 +44,7 @@ class BookDaoTest {
         authors: List<String> = listOf("J.R.R. Tolkien"),
         readingStatus: ReadingStatus = ReadingStatus.WantToRead,
         dateAdded: Long = System.currentTimeMillis(),
+        workKey: String = "/works/OL45804W",
     ) = BookEntity(
         compositeKey = compositeKey,
         title = title,
@@ -54,7 +55,7 @@ class BookDaoTest {
         description = "A fantasy adventure novel",
         subjects = listOf("Fantasy", "Adventure"),
         readingStatus = readingStatus,
-        workKey = "/works/OL45804W",
+        workKey = workKey,
         editionKey = "/books/OL7353617M",
         dateAdded = dateAdded,
         lastUpdated = dateAdded,

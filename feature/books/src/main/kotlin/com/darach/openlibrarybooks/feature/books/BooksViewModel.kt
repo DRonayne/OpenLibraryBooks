@@ -1,5 +1,6 @@
 package com.darach.openlibrarybooks.feature.books
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.darach.openlibrarybooks.core.common.ui.UiState
@@ -42,6 +43,10 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
 
     private val compositeDisposable = CompositeDisposable()
 
+    companion object {
+        private const val TAG = "BooksViewModel"
+    }
+
     // Mutable state for filters and sorting
     private val _filterOptions = MutableStateFlow(FilterOptions())
     val filterOptions: StateFlow<FilterOptions> = _filterOptions.asStateFlow()
@@ -77,6 +82,7 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
             .map { books ->
                 val filtered = books.applyFilters(filters)
                 val sorted = applySorting(filtered, sort)
+                Log.d(TAG, "Books filtered and sorted: ${books.size} total -> ${filtered.size} filtered -> ${sorted.size} sorted (sort: $sort)")
                 when {
                     sorted.isEmpty() && books.isEmpty() -> UiState.Empty
                     sorted.isEmpty() -> UiState.Success(emptyList())
@@ -84,6 +90,7 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
                 }
             }
             .catch { throwable ->
+                Log.e(TAG, "Error in books flow", throwable)
                 emit(
                     UiState.Error(
                         message = handleError(throwable),
@@ -116,6 +123,7 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
                     performRefresh(username)
                 }
         }
+        Log.i(TAG, "Refresh handler setup complete with 500ms debounce")
     }
 
     /**
@@ -127,6 +135,7 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
      * @param username Open Library username to sync books for
      */
     fun refresh(username: String) {
+        Log.d(TAG, "Refresh triggered for username: $username")
         viewModelScope.launch {
             refreshTrigger.emit(username)
         }
@@ -138,17 +147,23 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
      * @param username Open Library username to sync books for
      */
     private fun performRefresh(username: String) {
-        if (_isRefreshing.value) return
+        if (_isRefreshing.value) {
+            Log.d(TAG, "Refresh already in progress for username: $username, skipping")
+            return
+        }
 
+        Log.d(TAG, "Starting refresh for username: $username")
         _isRefreshing.value = true
         _errorMessage.value = null
 
         booksRepository.sync(username)
             .subscribeBy(
                 onComplete = {
+                    Log.i(TAG, "Refresh completed successfully for username: $username")
                     _isRefreshing.value = false
                 },
                 onError = { throwable ->
+                    Log.e(TAG, "Refresh failed for username: $username", throwable)
                     _isRefreshing.value = false
                     _errorMessage.value = handleRefreshError(throwable)
                 },
@@ -165,6 +180,7 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
      * @param filters New filter options to apply
      */
     fun updateFilters(filters: FilterOptions) {
+        Log.d(TAG, "Filter options updated: statuses=$filters, isFavourite=${filters.isFavorite}")
         _filterOptions.value = filters
     }
 
@@ -177,6 +193,7 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
      * @param sort New sort option to apply
      */
     fun updateSort(sort: SortOption) {
+        Log.d(TAG, "Sort option updated: $sort")
         _sortOption.value = sort
     }
 
@@ -267,6 +284,7 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
      */
     override fun onCleared() {
         super.onCleared()
+        Log.d(TAG, "ViewModel cleared, disposing RxJava subscriptions")
         compositeDisposable.dispose()
     }
 }
