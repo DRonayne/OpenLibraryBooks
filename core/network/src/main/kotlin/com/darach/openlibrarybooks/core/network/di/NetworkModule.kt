@@ -31,6 +31,7 @@ object NetworkModule {
 
     /**
      * Provides configured OkHttpClient with:
+     * - Accept header
      * - Logging interceptor (debug only)
      * - 30s connect timeout
      * - 60s read timeout
@@ -38,6 +39,12 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor { chain ->
+            val request = chain.request().newBuilder()
+                .addHeader("Accept", "application/json")
+                .build()
+            chain.proceed(request)
+        }
         .addInterceptor(
             HttpLoggingInterceptor().apply {
                 // In debug builds, log full request/response bodies
