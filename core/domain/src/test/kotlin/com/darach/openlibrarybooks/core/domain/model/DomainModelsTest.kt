@@ -100,44 +100,56 @@ class FilterOptionsTest {
 
     @Test
     fun `FilterOptions isEmpty returns true when all filters are null or empty`() {
-        val options = FilterOptions()
+        val options = FilterOptions(readingStatuses = emptySet())
         assertTrue(options.isEmpty())
     }
 
     @Test
     fun `FilterOptions isEmpty returns false when readingStatus is set`() {
-        val options = FilterOptions(readingStatus = ReadingStatus.WantToRead)
+        val options = FilterOptions(readingStatuses = setOf(ReadingStatus.WantToRead))
         assertFalse(options.isEmpty())
     }
 
     @Test
     fun `FilterOptions isEmpty returns false when isFavorite is set`() {
-        val options = FilterOptions(isFavorite = true)
+        val options = FilterOptions(
+            readingStatuses = emptySet(),
+            isFavorite = true,
+        )
         assertFalse(options.isEmpty())
     }
 
     @Test
     fun `FilterOptions isEmpty returns false when searchQuery is set`() {
-        val options = FilterOptions(searchQuery = "hobbit")
+        val options = FilterOptions(
+            readingStatuses = emptySet(),
+            searchQuery = "hobbit",
+        )
         assertFalse(options.isEmpty())
     }
 
     @Test
     fun `FilterOptions isEmpty returns false when subjects is not empty`() {
-        val options = FilterOptions(subjects = listOf("Fantasy"))
+        val options = FilterOptions(
+            readingStatuses = emptySet(),
+            subjects = listOf("Fantasy"),
+        )
         assertFalse(options.isEmpty())
     }
 
     @Test
     fun `FilterOptions isEmpty returns true when searchQuery is blank`() {
-        val options = FilterOptions(searchQuery = "   ")
+        val options = FilterOptions(
+            readingStatuses = emptySet(),
+            searchQuery = "   ",
+        )
         assertTrue(options.isEmpty())
     }
 
     @Test
     fun `FilterOptions isNotEmpty is opposite of isEmpty`() {
-        val emptyOptions = FilterOptions()
-        val nonEmptyOptions = FilterOptions(readingStatus = ReadingStatus.WantToRead)
+        val emptyOptions = FilterOptions(readingStatuses = emptySet())
+        val nonEmptyOptions = FilterOptions(readingStatuses = setOf(ReadingStatus.WantToRead))
 
         assertTrue(emptyOptions.isEmpty())
         assertFalse(emptyOptions.isNotEmpty())
@@ -149,13 +161,13 @@ class FilterOptionsTest {
     @Test
     fun `FilterOptions can combine multiple filters`() {
         val options = FilterOptions(
-            readingStatus = ReadingStatus.CurrentlyReading,
+            readingStatuses = setOf(ReadingStatus.CurrentlyReading),
             isFavorite = true,
             searchQuery = "tolkien",
             subjects = listOf("Fantasy", "Adventure"),
         )
 
-        assertEquals(ReadingStatus.CurrentlyReading, options.readingStatus)
+        assertEquals(setOf(ReadingStatus.CurrentlyReading), options.readingStatuses)
         assertEquals(true, options.isFavorite)
         assertEquals("tolkien", options.searchQuery)
         assertEquals(2, options.subjects.size)

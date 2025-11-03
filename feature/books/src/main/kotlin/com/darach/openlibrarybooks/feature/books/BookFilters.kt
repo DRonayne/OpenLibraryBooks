@@ -24,16 +24,16 @@ internal object BookFilters {
         book.matchesReadingStatus(filters) &&
             book.matchesFavoriteStatus(filters) &&
             book.matchesSearchQuery(filters) &&
-            book.matchesAuthorName(filters) &&
+            book.matchesAuthors(filters) &&
             book.matchesYearRange(filters) &&
             book.matchesSubjects(filters)
     }
 
     /**
      * Checks if a book matches the reading status filter.
+     * Exactly one reading status is always selected.
      */
-    private fun Book.matchesReadingStatus(filters: FilterOptions): Boolean =
-        filters.readingStatus?.let { status -> readingStatus == status } ?: true
+    private fun Book.matchesReadingStatus(filters: FilterOptions): Boolean = readingStatus in filters.readingStatuses
 
     /**
      * Checks if a book matches the favorite status filter.
@@ -54,15 +54,18 @@ internal object BookFilters {
     } ?: true
 
     /**
-     * Checks if a book matches the author name filter.
+     * Checks if a book matches the authors filter.
+     * If no authors are specified, shows all books.
      */
-    private fun Book.matchesAuthorName(filters: FilterOptions): Boolean = filters.authorName?.let { authorName ->
-        if (authorName.isBlank()) {
-            true
-        } else {
-            authors.any { author -> author.contains(authorName, ignoreCase = true) }
+    private fun Book.matchesAuthors(filters: FilterOptions): Boolean = if (filters.authors.isNotEmpty()) {
+        authors.any { bookAuthor ->
+            filters.authors.any { filterAuthor ->
+                bookAuthor.equals(filterAuthor, ignoreCase = true)
+            }
         }
-    } ?: true
+    } else {
+        true
+    }
 
     /**
      * Checks if a book matches the year range filter.

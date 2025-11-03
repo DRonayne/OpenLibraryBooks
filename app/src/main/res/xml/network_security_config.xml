@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Base configuration for all domains -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- Trust system certificates -->
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Debug configuration - allows user certificates for testing with proxies like Charles -->
+    <debug-overrides>
+        <trust-anchors>
+            <!-- Trust both system and user-installed certificates in debug builds -->
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </debug-overrides>
+
+    <!-- Configuration for Open Library API -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">openlibrary.org</domain>
+        <domain includeSubdomains="true">covers.openlibrary.org</domain>
+        <trust-anchors>
+            <!-- Trust system certificates for Open Library domains -->
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>

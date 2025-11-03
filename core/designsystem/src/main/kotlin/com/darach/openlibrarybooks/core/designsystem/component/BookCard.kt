@@ -110,7 +110,7 @@ private fun CoverPlaceholder() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(0.67f)
+            .aspectRatio(0.63f)
             .clip(MaterialTheme.shapes.medium)
             .background(MaterialTheme.colorScheme.surfaceVariant),
         contentAlignment = Alignment.Center,

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.darach.openlibrarybooks.core.common.ui.UiState
 import com.darach.openlibrarybooks.core.domain.model.Book
 import com.darach.openlibrarybooks.core.domain.model.FilterOptions
+import com.darach.openlibrarybooks.core.domain.model.ReadingStatus
 import com.darach.openlibrarybooks.core.domain.model.SortOption
 import com.darach.openlibrarybooks.core.domain.repository.BooksRepository
 import com.darach.openlibrarybooks.feature.books.BookFilters.applyFilters
@@ -48,7 +49,7 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
     }
 
     // Mutable state for filters and sorting
-    private val _filterOptions = MutableStateFlow(FilterOptions())
+    private val _filterOptions = MutableStateFlow(FilterOptions(readingStatuses = setOf(ReadingStatus.WantToRead)))
     val filterOptions: StateFlow<FilterOptions> = _filterOptions.asStateFlow()
 
     private val _sortOption = MutableStateFlow<SortOption>(SortOption.DateAddedNewest)
@@ -82,7 +83,11 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
             .map { books ->
                 val filtered = books.applyFilters(filters)
                 val sorted = applySorting(filtered, sort)
-                Log.d(TAG, "Books filtered and sorted: ${books.size} total -> ${filtered.size} filtered -> ${sorted.size} sorted (sort: $sort)")
+                Log.d(
+                    TAG,
+                    "Books filtered and sorted: ${books.size} total -> " +
+                        "${filtered.size} filtered -> ${sorted.size} sorted (sort: $sort)",
+                )
                 when {
                     sorted.isEmpty() && books.isEmpty() -> UiState.Empty
                     sorted.isEmpty() -> UiState.Success(emptyList())
@@ -103,6 +108,67 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = UiState.Loading,
     )
+
+    /**
+     * Exposes all unique authors from cached books for filtering.
+     */
+    val availableAuthors: StateFlow<List<String>> = booksRepository.getBooks()
+        .map { books ->
+            books.flatMap { it.authors }
+                .distinct()
+                .sorted()
+        }
+        .catch { throwable ->
+            Log.e(TAG, "Error fetching available authors", throwable)
+            emit(emptyList())
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
+
+    /**
+     * Exposes all unique subjects from cached books for filtering.
+     */
+    val availableSubjects: StateFlow<List<String>> = booksRepository.getBooks()
+        .map { books ->
+            books.flatMap { it.subjects }
+                .distinct()
+                .sorted()
+        }
+        .catch { throwable ->
+            Log.e(TAG, "Error fetching available subjects", throwable)
+            emit(emptyList())
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
+
+    /**
+     * Exposes the year range from cached books for the range slider.
+     * Returns a Pair of (minYear, maxYear). Defaults to (1900, current year) if no books.
+     */
+    val yearRange: StateFlow<Pair<Int, Int>> = booksRepository.getBooks()
+        .map { books ->
+            val years = books.mapNotNull { it.publishYear }
+            if (years.isNotEmpty()) {
+                Pair(years.minOrNull() ?: 1900, years.maxOrNull() ?: 2024)
+            } else {
+                Pair(1900, 2024)
+            }
+        }
+        .catch { throwable ->
+            Log.e(TAG, "Error fetching year range", throwable)
+            emit(Pair(1900, 2024))
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = Pair(1900, 2024),
+        )
 
     init {
         setupRefreshHandler()
@@ -180,7 +246,7 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
      * @param filters New filter options to apply
      */
     fun updateFilters(filters: FilterOptions) {
-        Log.d(TAG, "Filter options updated: statuses=$filters, isFavourite=${filters.isFavorite}")
+        Log.d(TAG, "Filter options updated: statuses=${filters.readingStatuses}, isFavourite=${filters.isFavorite}")
         _filterOptions.value = filters
     }
 

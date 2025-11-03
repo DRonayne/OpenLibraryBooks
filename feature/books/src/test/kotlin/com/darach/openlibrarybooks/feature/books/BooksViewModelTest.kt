@@ -1,5 +1,6 @@
 package com.darach.openlibrarybooks.feature.books
 
+import android.util.Log
 import app.cash.turbine.test
 import com.darach.openlibrarybooks.core.common.ui.UiState
 import com.darach.openlibrarybooks.core.domain.model.Book
@@ -11,6 +12,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import io.mockk.verify
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.plugins.RxJavaPlugins
@@ -103,6 +106,13 @@ class BooksViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
 
+        // Mock Android Log class since it's not available in unit tests
+        mockkStatic(Log::class)
+        every { Log.d(any(), any()) } returns 0
+        every { Log.i(any(), any()) } returns 0
+        every { Log.e(any(), any(), any()) } returns 0
+        every { Log.w(any(), any<String>()) } returns 0
+
         // Override RxJava schedulers for synchronous testing
         RxJavaPlugins.setIoSchedulerHandler { Schedulers.trampoline() }
         RxJavaPlugins.setComputationSchedulerHandler { Schedulers.trampoline() }
@@ -116,6 +126,7 @@ class BooksViewModelTest {
     fun tearDown() {
         Dispatchers.resetMain()
         RxJavaPlugins.reset()
+        unmockkStatic(Log::class)
     }
 
     @Test
@@ -131,14 +142,16 @@ class BooksViewModelTest {
     }
 
     @Test
-    fun `booksUiState emits Success with all books initially`() = runTest {
+    fun `booksUiState emits Success with WantToRead books initially`() = runTest {
         val viewModel = BooksViewModel(mockRepository)
         viewModel.booksUiState.test {
             // With UnconfinedTestDispatcher, we get Success immediately
+            // Initial filter is WantToRead, so we get 2 books (The Hobbit, Animal Farm)
             val state = awaitItem()
             state.shouldBeInstanceOf<UiState.Success<List<Book>>>()
             val books = state.data
-            books.size shouldBe 5
+            books.size shouldBe 2
+            books.all { it.readingStatus == ReadingStatus.WantToRead } shouldBe true
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -160,15 +173,16 @@ class BooksViewModelTest {
     fun `updateFilters applies reading status filter correctly`() = runTest {
         val viewModel = BooksViewModel(mockRepository)
         viewModel.booksUiState.test {
-            awaitItem() // Initial success (Loading is skipped with UnconfinedTestDispatcher)
+            awaitItem() // Initial success with WantToRead filter
 
-            viewModel.updateFilters(FilterOptions(readingStatus = ReadingStatus.WantToRead))
+            // Change to CurrentlyReading
+            viewModel.updateFilters(FilterOptions(readingStatuses = setOf(ReadingStatus.CurrentlyReading)))
 
             val state = awaitItem()
             state.shouldBeInstanceOf<UiState.Success<List<Book>>>()
             val books = state.data
-            books.size shouldBe 2
-            books.all { it.readingStatus == ReadingStatus.WantToRead } shouldBe true
+            books.size shouldBe 1
+            books.all { it.readingStatus == ReadingStatus.CurrentlyReading } shouldBe true
         }
     }
 
@@ -176,15 +190,17 @@ class BooksViewModelTest {
     fun `updateFilters applies favorite filter correctly`() = runTest {
         val viewModel = BooksViewModel(mockRepository)
         viewModel.booksUiState.test {
-            awaitItem() // Initial success (Loading is skipped with UnconfinedTestDispatcher)
+            awaitItem() // Initial success with WantToRead filter (2 books, 1 favorite)
 
-            viewModel.updateFilters(FilterOptions(isFavorite = true))
+            // Filter for favorites in WantToRead (should get The Hobbit only)
+            viewModel.updateFilters(FilterOptions(readingStatuses = setOf(ReadingStatus.WantToRead), isFavorite = true))
 
             val state = awaitItem()
             state.shouldBeInstanceOf<UiState.Success<List<Book>>>()
             val books = state.data
-            books.size shouldBe 2
+            books.size shouldBe 1
             books.all { it.isFavorite } shouldBe true
+            books.all { it.readingStatus == ReadingStatus.WantToRead } shouldBe true
         }
     }
 
@@ -192,15 +208,19 @@ class BooksViewModelTest {
     fun `updateFilters applies subject filter correctly`() = runTest {
         val viewModel = BooksViewModel(mockRepository)
         viewModel.booksUiState.test {
-            awaitItem() // Initial success (Loading is skipped with UnconfinedTestDispatcher)
+            awaitItem() // Initial success with WantToRead filter
 
-            viewModel.updateFilters(FilterOptions(subjects = listOf("Dystopian")))
+            // Filter for Dystopian in WantToRead (should get Animal Farm only)
+            viewModel.updateFilters(
+                FilterOptions(readingStatuses = setOf(ReadingStatus.WantToRead), subjects = listOf("Dystopian")),
+            )
 
             val state = awaitItem()
             state.shouldBeInstanceOf<UiState.Success<List<Book>>>()
             val books = state.data
-            books.size shouldBe 2 // 1984 and Animal Farm
+            books.size shouldBe 1 // Animal Farm only (WantToRead + Dystopian)
             books.all { it.subjects.contains("Dystopian") } shouldBe true
+            books.all { it.readingStatus == ReadingStatus.WantToRead } shouldBe true
         }
     }
 
@@ -262,7 +282,7 @@ class BooksViewModelTest {
     fun `filterOptions state reflects updates`() = runTest {
         val viewModel = BooksViewModel(mockRepository)
         val newFilters = FilterOptions(
-            readingStatus = ReadingStatus.CurrentlyReading,
+            readingStatuses = setOf(ReadingStatus.CurrentlyReading),
             isFavorite = true,
         )
 
