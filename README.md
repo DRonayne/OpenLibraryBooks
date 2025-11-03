@@ -6,9 +6,9 @@
 
 ## About
 
-An Android app demonstrating enterprise-level MVVM architecture and reactive programming best practices. Features personal reading lists from Open Library's API with offline-first browsing, filtering, sorting, favourites management, and a home screen widget. Built with a focus on robust state handling, reactive data flows, and comprehensive architectural patterns.
+An Android app demonstrating MVVM architecture and reactive programming best practices. Features reading lists from Open Library's API with offline-first browsing, filtering, sorting, favourites management, and a home screen widget. Built with a focus on state handling, reactive data flows, and architectural patterns.
 
-**Demonstrates:** MVVM architecture, RxJava reactive streams, multi-module design, offline-first repository pattern, background sync with WorkManager, and Material 3 adaptive layouts
+**Demonstrates:** MVVM architecture, RxJava reactive streams, multi-module design, offline-first repository pattern, and Material 3 adaptive layouts
 
 ---
 
