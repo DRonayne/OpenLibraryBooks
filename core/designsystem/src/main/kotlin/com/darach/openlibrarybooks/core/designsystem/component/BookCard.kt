@@ -2,6 +2,7 @@ package com.darach.openlibrarybooks.core.designsystem.component
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -42,6 +43,7 @@ import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
+import com.darach.openlibrarybooks.core.designsystem.theme.goldOchre
 import com.darach.openlibrarybooks.core.designsystem.util.rememberHapticFeedback
 import com.darach.openlibrarybooks.core.designsystem.util.springSpec
 import com.darach.openlibrarybooks.core.domain.model.Book
@@ -57,14 +59,24 @@ private data class BookCardAnimationState(val scale: Float, val elevation: Float
 
 /**
  * Remembers and animates the card state based on hover and press interactions.
+ * Favourite variant cards have higher elevation and slightly larger base scale.
+ *
+ * @param isHovered Whether the card is currently hovered
+ * @param isPressed Whether the card is currently pressed
+ * @param isFavouriteVariant Whether this is a favourite variant (enhanced styling)
  */
 @Composable
-private fun rememberBookCardAnimationState(isHovered: Boolean, isPressed: Boolean): BookCardAnimationState {
+private fun rememberBookCardAnimationState(
+    isHovered: Boolean,
+    isPressed: Boolean,
+    isFavouriteVariant: Boolean,
+): BookCardAnimationState {
+    val baseScale = if (isFavouriteVariant) 1.02f else 1.0f
     val scale by animateFloatAsState(
         targetValue = when {
             isPressed -> 0.95f
-            isHovered -> 1.02f
-            else -> 1.0f
+            isHovered -> baseScale + 0.02f
+            else -> baseScale
         },
         animationSpec = springSpec(
             dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -73,11 +85,13 @@ private fun rememberBookCardAnimationState(isHovered: Boolean, isPressed: Boolea
         label = "card_scale",
     )
 
+    val baseElevation = if (isFavouriteVariant) 4f else 2f
+    val hoverElevation = if (isFavouriteVariant) 8f else 6f
     val elevation by animateFloatAsState(
         targetValue = when {
             isPressed -> 1f
-            isHovered -> 6f
-            else -> 2f
+            isHovered -> hoverElevation
+            else -> baseElevation
         },
         animationSpec = springSpec(
             dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -99,20 +113,28 @@ private fun rememberBookCardAnimationState(isHovered: Boolean, isPressed: Boolea
  * - Loading state with shimmer effect
  * - Click callback for navigation
  * - Interactive animations: scale on press, elevation on hover, long-press support
+ * - Optional favourite variant styling with gold border and enhanced elevation
  *
  * @param book The book to display
  * @param onClick Callback when the card is clicked
  * @param onFavoriteToggle Callback when the favourite button is clicked
  * @param modifier Modifier to be applied to the card
+ * @param isFavouriteVariant Whether to use enhanced styling for favourite cards
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun BookCard(book: Book, onClick: () -> Unit, onFavoriteToggle: () -> Unit, modifier: Modifier = Modifier) {
+fun BookCard(
+    book: Book,
+    onClick: () -> Unit,
+    onFavoriteToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+    isFavouriteVariant: Boolean = false,
+) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val isPressed by interactionSource.collectIsPressedAsState()
     val haptic = rememberHapticFeedback()
-    val animationState = rememberBookCardAnimationState(isHovered, isPressed)
+    val animationState = rememberBookCardAnimationState(isHovered, isPressed, isFavouriteVariant)
 
     Card(
         modifier = modifier
@@ -141,6 +163,11 @@ fun BookCard(book: Book, onClick: () -> Unit, onFavoriteToggle: () -> Unit, modi
         elevation = CardDefaults.cardElevation(
             defaultElevation = animationState.elevation.dp,
         ),
+        border = if (isFavouriteVariant) {
+            BorderStroke(1.5.dp, goldOchre)
+        } else {
+            null
+        },
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),

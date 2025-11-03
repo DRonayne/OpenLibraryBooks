@@ -5,27 +5,41 @@ package com.darach.openlibrarybooks.feature.favourites
 import android.Manifest
 import androidx.annotation.RequiresPermission
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,7 +55,9 @@ import com.darach.openlibrarybooks.core.designsystem.component.EmptyStateType
 import com.darach.openlibrarybooks.core.designsystem.component.ErrorState
 import com.darach.openlibrarybooks.core.designsystem.component.ErrorType
 import com.darach.openlibrarybooks.core.designsystem.component.OfflineIndicator
+import com.darach.openlibrarybooks.core.designsystem.component.TriangularPattern
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
+import com.darach.openlibrarybooks.core.designsystem.theme.goldOchre
 import com.darach.openlibrarybooks.core.domain.model.Book
 import com.darach.openlibrarybooks.core.domain.model.ReadingStatus
 import com.darach.openlibrarybooks.core.domain.repository.FavouritesRepository
@@ -176,12 +192,18 @@ internal fun FavouritesScreenContent(
             FavouritesLoadingState(modifier = modifier)
         }
         is UiState.Success -> {
-            FavouritesList(
-                books = favouritesUiState.data,
-                onBookClick = onBookClick,
-                onFavoriteToggle = onFavoriteToggle,
-                modifier = modifier,
-            )
+            Column(modifier = modifier.fillMaxSize()) {
+                // Header with favourite count
+                FavouritesHeader(favouriteCount = favouritesUiState.data.size)
+
+                // List of favourite books
+                FavouritesList(
+                    books = favouritesUiState.data,
+                    onBookClick = onBookClick,
+                    onFavoriteToggle = onFavoriteToggle,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
         }
         is UiState.Empty -> {
             EmptyState(
@@ -205,6 +227,89 @@ internal fun FavouritesScreenContent(
                 emptyStateType = EmptyStateType.NO_BOOKS_FOUND,
                 modifier = modifier.fillMaxSize(),
             )
+        }
+    }
+}
+
+/**
+ * Header for the favourites screen with triangular pattern background.
+ * Displays the screen title and favourite count in a visually distinct banner.
+ *
+ * @param favouriteCount Number of favourite books to display
+ * @param modifier Optional modifier for the header
+ */
+@Suppress("LongMethod") // UI composition function with necessary structure
+@Composable
+private fun FavouritesHeader(favouriteCount: Int, modifier: Modifier = Modifier) {
+    val isDarkTheme = isSystemInDarkTheme()
+
+    // Create custom gold-tone colors for the triangular pattern
+    val goldColors = listOf(
+        goldOchre.copy(alpha = if (isDarkTheme) 0.3f else 0.6f),
+        goldOchre.copy(alpha = if (isDarkTheme) 0.2f else 0.4f),
+        goldOchre.copy(alpha = if (isDarkTheme) 0.15f else 0.3f),
+    )
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(120.dp),
+    ) {
+        // Triangular pattern background with gold tones
+        TriangularPattern(
+            modifier = Modifier.matchParentSize(),
+            triangleSize = 80f,
+            customColors = goldColors,
+            overlayColor = Color.Transparent,
+        )
+
+        // Content overlay
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.Center,
+        ) {
+            // Title with display font
+            Text(
+                modifier = Modifier.padding(top = 16.dp),
+                text = stringResource(R.string.my_favourites),
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Favourite count badge
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Surface(
+                    color = goldOchre.copy(alpha = 0.9f),
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier
+                                .width(16.dp)
+                                .height(16.dp),
+                        )
+                        Text(
+                            text = "$favouriteCount ${if (favouriteCount == 1) "book" else "books"}",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = Color.White,
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -236,8 +341,8 @@ private fun FavouritesLoadingState(modifier: Modifier = Modifier) {
  * Features:
  * - Automatically calculates columns based on screen width (160dp minimum)
  * - Smooth animations when items are added/removed
- * - Enhanced spacing and visual flourishes
- * - Uses consistent BookCard component from design system
+ * - Enhanced spacing and visual flourishes for favourites
+ * - Uses favourite variant of BookCard with gold border and elevated styling
  *
  * @param books List of favourite books
  * @param onBookClick Callback when a book is clicked
@@ -253,12 +358,10 @@ private fun FavouritesList(
 ) {
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Adaptive(160.dp),
-        modifier = modifier
-            .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.statusBars),
+        modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalItemSpacing = 12.dp,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalItemSpacing = 16.dp,
     ) {
         items(
             items = books,
@@ -268,6 +371,7 @@ private fun FavouritesList(
                 book = book,
                 onClick = { onBookClick(book) },
                 onFavoriteToggle = { onFavoriteToggle(book.id) },
+                isFavouriteVariant = true,
                 modifier = Modifier.animateItem(
                     fadeInSpec = tween(durationMillis = 300),
                     fadeOutSpec = tween(durationMillis = 200),
