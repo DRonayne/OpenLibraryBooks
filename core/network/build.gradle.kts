@@ -5,6 +5,12 @@ plugins {
 
 android {
     namespace = "com.darach.openlibrarybooks.core.network"
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1,COPYRIGHT}"
+        }
+    }
 }
 
 dependencies {

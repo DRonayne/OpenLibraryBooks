@@ -1,10 +1,12 @@
 package com.darach.openlibrarybooks.core.common.util
 
+import android.Manifest
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import androidx.annotation.RequiresPermission
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +32,7 @@ class NetworkConnectivity @Inject constructor(@ApplicationContext private val co
      *
      * @return true if connected to a network with internet capability, false otherwise
      */
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     fun isConnected(): Boolean {
         val network = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
@@ -43,6 +46,7 @@ class NetworkConnectivity @Inject constructor(@ApplicationContext private val co
      *
      * @return true if connected via WiFi, false otherwise
      */
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     fun isConnectedViaWifi(): Boolean {
         val network = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
@@ -55,6 +59,7 @@ class NetworkConnectivity @Inject constructor(@ApplicationContext private val co
      *
      * @return true if connected via cellular, false otherwise
      */
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     fun isConnectedViaCellular(): Boolean {
         val network = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
@@ -70,6 +75,7 @@ class NetworkConnectivity @Inject constructor(@ApplicationContext private val co
      *
      * @return Flow<Boolean> representing connectivity status
      */
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     fun observeConnectivity(): Flow<Boolean> = callbackFlow {
         val networkCallback = object : ConnectivityManager.NetworkCallback() {
             private val networks = mutableSetOf<Network>()

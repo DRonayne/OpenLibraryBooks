@@ -6,6 +6,12 @@ plugins {
 android {
     namespace = "com.darach.openlibrarybooks.core.database"
 
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1,COPYRIGHT}"
+        }
+    }
+
     testOptions {
         unitTests.isReturnDefaultValues = true
     }

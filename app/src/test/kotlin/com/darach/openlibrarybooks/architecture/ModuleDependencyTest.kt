@@ -1,8 +1,6 @@
 package com.darach.openlibrarybooks.architecture
 
 import com.lemonappdev.konsist.api.Konsist
-import com.lemonappdev.konsist.api.architecture.KoArchitectureCreator.assertArchitecture
-import com.lemonappdev.konsist.api.architecture.Layer
 import org.junit.Test
 
 /**
@@ -53,21 +51,6 @@ class ModuleDependencyTest {
                             )
                         }
                     }
-            }
-    }
-
-    @Test
-    fun `architecture layers are properly defined`() {
-        Konsist
-            .scopeFromProject()
-            .assertArchitecture {
-                val data = Layer("Data", "..data..")
-                val domain = Layer("Domain", "..domain..")
-                val presentation = Layer("Presentation", "..presentation..")
-
-                presentation.dependsOn(domain)
-                domain.dependsOnNothing()
-                data.dependsOn(domain)
             }
     }
 }

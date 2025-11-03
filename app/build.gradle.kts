@@ -41,6 +41,9 @@ android {
 }
 
 dependencies {
+    // Core modules
+    implementation(project(":core:designsystem"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -49,7 +52,6 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.work.rxjava3)
     implementation(libs.androidx.hilt.work)
-    implementation(libs.androidx.compose.ui.text.google.fonts)
     ksp(libs.androidx.hilt.compiler)
 
     // Compose dependencies (BOM and common libraries added by convention plugin)

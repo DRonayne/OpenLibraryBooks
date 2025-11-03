@@ -1,7 +1,10 @@
-package com.darach.openlibrarybooks.ui.theme
+package com.darach.openlibrarybooks.core.designsystem.theme
 
 import androidx.compose.ui.graphics.Color
 
+/**
+ * Material 3 Expressive colour palette for light mode.
+ */
 val primaryLight = Color(0xFF006B2E)
 val onPrimaryLight = Color(0xFFFFFFFF)
 val primaryContainerLight = Color(0xFF00873C)
@@ -38,6 +41,10 @@ val surfaceContainerLight = Color(0xFFE9F0E5)
 val surfaceContainerHighLight = Color(0xFFE3EAE0)
 val surfaceContainerHighestLight = Color(0xFFDEE4DA)
 
+/**
+ * Material 3 Expressive colour palette for dark mode.
+ * Provides proper contrast and accessibility in low-light conditions.
+ */
 val primaryDark = Color(0xFF69DE83)
 val onPrimaryDark = Color(0xFF003915)
 val primaryContainerDark = Color(0xFF2BA552)
@@ -74,7 +81,9 @@ val surfaceContainerDark = Color(0xFF1B211B)
 val surfaceContainerHighDark = Color(0xFF252C25)
 val surfaceContainerHighestDark = Color(0xFF30362F)
 
-// Extra Style Colors
+/**
+ * Additional colours for special use cases.
+ */
 val darkGreen = Color(0xFF005B2C)
 val midGreen = Color(0xFF198F52)
 val lightGreenAccent = Color(0xFF4DBA84)
