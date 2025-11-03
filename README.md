@@ -1,25 +1,5 @@
 <div align="center">
-<img src="readme_images/ic_launcher-web.png" width="200" alt="Open Library Books App Icon" style="border-radius: 20px;"/>
-
-# Open Library Books
-
-**Modern Android showcase: MVVM architecture, RxJava reactive programming, offline-first with Jetpack Compose**
-
-<img alt="API 29+" src="https://img.shields.io/badge/Api%2029+-50f270?logo=android&logoColor=black&style=for-the-badge" />
-<img alt="Kotlin" src="https://img.shields.io/badge/Kotlin%202-a503fc?logo=kotlin&logoColor=white&style=for-the-badge" />
-<img alt="Jetpack Compose" src="https://img.shields.io/static/v1?style=for-the-badge&message=Jetpack+Compose&color=4285F4&logo=Jetpack+Compose&logoColor=FFFFFF&label=" />
-<img alt="Material 3" src="https://custom-icon-badges.demolab.com/badge/material%203-lightblue?style=for-the-badge&logoColor=333&logo=material-you" />
-
-<img alt="Hilt" src="https://img.shields.io/badge/Hilt-FFA500?logo=dagger&logoColor=white&style=for-the-badge" />
-<img alt="Room" src="https://img.shields.io/badge/Room-4285F4?logo=sqlite&logoColor=white&style=for-the-badge" />
-<img alt="Retrofit" src="https://img.shields.io/badge/Retrofit-48B983?logo=square&logoColor=white&style=for-the-badge" />
-<img alt="Firebase" src="https://img.shields.io/badge/Firebase-FFCA28?logo=firebase&logoColor=black&style=for-the-badge" />
-
-<img alt="MVVM" src="https://img.shields.io/badge/MVVM-671DEF?logoColor=white&style=for-the-badge" />
-<img alt="RxJava" src="https://img.shields.io/badge/RxJava%203-B7178C?logo=reactivex&logoColor=white&style=for-the-badge" />
-<img alt="Offline First" src="https://img.shields.io/badge/Offline%20First-00C853?logo=databricks&logoColor=white&style=for-the-badge" />
-<img alt="WorkManager" src="https://img.shields.io/badge/WorkManager-00897B?logo=android&logoColor=white&style=for-the-badge" />
-
+<img src="readme_images/readme_header.png" alt="Open Library Books" width="100%"/>
 </div>
 
 ---
@@ -164,7 +144,24 @@ core/                   # Shared modules
 ```mermaid
 %%{
   init: {
-    'theme': 'dark'
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#2D5A3D',
+      'primaryTextColor': '#E0F0E5',
+      'primaryBorderColor': '#3E6844',
+      'lineColor': '#5C8A6B',
+      'secondaryColor': '#3E6844',
+      'tertiaryColor': '#547D5E',
+      'clusterBkg': '#1A2820',
+      'clusterBorder': '#3E6844',
+      'defaultLinkColor': '#5C8A6B',
+      'titleColor': '#A4D2A7',
+      'edgeLabelBackground': '#1A2820',
+      'nodeTextColor': '#E0F0E5',
+      'mainBkg': '#2D5A3D',
+      'nodeBorder': '#3E6844',
+      'background': '#1A2820'
+    }
   }
 }%%
 
