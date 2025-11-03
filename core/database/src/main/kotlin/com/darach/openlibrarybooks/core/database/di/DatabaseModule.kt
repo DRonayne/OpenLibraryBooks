@@ -31,5 +31,17 @@ object DatabaseModule {
         .fallbackToDestructiveMigration() // For development; will be removed in production
         .build()
 
-    // DAOs will be provided here in future implementation tickets
+    /**
+     * Provides BookDao for accessing book data.
+     */
+    @Provides
+    @Singleton
+    fun provideBookDao(database: AppDatabase) = database.bookDao()
+
+    /**
+     * Provides FavouritesDao for accessing favourite books data.
+     */
+    @Provides
+    @Singleton
+    fun provideFavouritesDao(database: AppDatabase) = database.favouritesDao()
 }
