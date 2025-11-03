@@ -21,3 +21,15 @@ dependencyResolutionManagement {
 
 rootProject.name = "OpenLibraryBooks"
 include(":app")
+
+// Core modules
+include(":core:common")
+include(":core:domain")
+include(":core:network")
+include(":core:database")
+include(":core:designsystem")
+
+// Feature modules
+include(":feature:books")
+include(":feature:favourites")
+include(":feature:settings")
