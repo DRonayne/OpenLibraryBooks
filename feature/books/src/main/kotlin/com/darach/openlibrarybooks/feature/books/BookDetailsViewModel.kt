@@ -41,6 +41,7 @@ class BookDetailsViewModel @Inject constructor(
     // Current book being displayed
     private var currentWorkId: String? = null
     private var currentEditionId: String? = null
+    private var currentBookId: String? = null // Composite key for favorite operations
 
     // UI state for work details
     private val _workDetailsState = MutableStateFlow<UiState<WorkDetails>>(UiState.Idle)
@@ -59,11 +60,13 @@ class BookDetailsViewModel @Inject constructor(
      *
      * @param workId The work ID to load details for (e.g., "OL45804W")
      * @param editionId Optional edition ID to load additional edition details
+     * @param bookId The book's composite key (title_author) for favorite operations
      */
-    fun loadBookDetails(workId: String, editionId: String? = null) {
-        Log.i(TAG, "Loading book details for workId: $workId, editionId: $editionId")
+    fun loadBookDetails(workId: String, editionId: String? = null, bookId: String? = null) {
+        Log.i(TAG, "Loading book details for workId: $workId, editionId: $editionId, bookId: $bookId")
         currentWorkId = workId
         currentEditionId = editionId
+        currentBookId = bookId
         loadWorkDetails()
         editionId?.let { loadEditionDetails(it) }
         checkFavouriteStatus()
@@ -126,27 +129,23 @@ class BookDetailsViewModel @Inject constructor(
 
     /**
      * Check if the current book is marked as favourite.
-     * Uses the work ID as the book identifier.
+     * Uses the book's composite key (title_author) for checking favorite status.
      */
     private fun checkFavouriteStatus() {
-        val workId = currentWorkId ?: run {
-            Log.w(TAG, "Cannot check favourite status: workId is null")
+        val bookId = currentBookId ?: run {
+            Log.w(TAG, "Cannot check favourite status: bookId is null")
             _isFavourite.value = false
             return
         }
 
-        // Note: Using workId as the composite key. This assumes the book
-        // was synced and stored with workKey as part of its composite key.
-        // In reality, books use title+author for composite keys, so we'd need
-        // to get the actual book first. For now, we'll track by workId.
-        favouritesRepository.isFavourite(workId)
+        favouritesRepository.isFavourite(bookId)
             .subscribeBy(
                 onSuccess = { isFav ->
                     _isFavourite.value = isFav
-                    Log.d(TAG, "Favourite status for $workId: $isFav")
+                    Log.d(TAG, "Favourite status for $bookId: $isFav")
                 },
                 onError = { error ->
-                    Log.w(TAG, "Failed to check favourite status for $workId", error)
+                    Log.w(TAG, "Failed to check favourite status for $bookId", error)
                     // Default to false on error
                     _isFavourite.value = false
                 },
@@ -156,14 +155,15 @@ class BookDetailsViewModel @Inject constructor(
 
     /**
      * Toggle favourite status for the current book.
+     * Uses the book's composite key (title_author) for toggling favorite status.
      */
     fun toggleFavourite() {
-        val workId = currentWorkId ?: run {
-            Log.e(TAG, "Cannot toggle favourite: workId is null")
+        val bookId = currentBookId ?: run {
+            Log.e(TAG, "Cannot toggle favourite: bookId is null")
             return
         }
 
-        Log.d(TAG, "Toggling favourite status for workId: $workId")
+        Log.d(TAG, "Toggling favourite status for bookId: $bookId")
 
         // Store current value for potential revert
         val previousValue = _isFavourite.value
@@ -171,13 +171,13 @@ class BookDetailsViewModel @Inject constructor(
         // Optimistic update - update UI immediately
         _isFavourite.value = !previousValue
 
-        favouritesRepository.toggleFavourite(workId)
+        favouritesRepository.toggleFavourite(bookId)
             .subscribeBy(
                 onComplete = {
-                    Log.i(TAG, "Successfully toggled favourite status for $workId to ${_isFavourite.value}")
+                    Log.i(TAG, "Successfully toggled favourite status for $bookId to ${_isFavourite.value}")
                 },
                 onError = { error ->
-                    Log.e(TAG, "Failed to toggle favourite status for $workId", error)
+                    Log.e(TAG, "Failed to toggle favourite status for $bookId", error)
                     // Revert optimistic update on error
                     _isFavourite.value = previousValue
                 },

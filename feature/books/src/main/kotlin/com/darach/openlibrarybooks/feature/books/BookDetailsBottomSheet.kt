@@ -23,9 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
@@ -61,6 +59,7 @@ import coil3.request.ImageRequest
 import com.darach.openlibrarybooks.core.common.ui.UiState
 import com.darach.openlibrarybooks.core.designsystem.component.ErrorState
 import com.darach.openlibrarybooks.core.designsystem.component.ErrorType
+import com.darach.openlibrarybooks.core.designsystem.component.FavoriteFilledIconButton
 import com.darach.openlibrarybooks.core.designsystem.component.ShimmerBox
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
 import com.darach.openlibrarybooks.core.domain.model.WorkDetails
@@ -444,6 +443,7 @@ private fun BookDetailsContent(
 /**
  * Action buttons for favourite toggle and close.
  * Positioned at the top right with reduced padding (8.dp).
+ * Favourite button includes scale animation on toggle.
  *
  * @param isFavourite Whether the book is favourited
  * @param onFavouriteToggle Callback to toggle favourite
@@ -474,31 +474,11 @@ private fun ActionButtons(
             )
         }
 
-        // Favourite button
-        FilledIconButton(
-            onClick = onFavouriteToggle,
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = if (isFavourite) {
-                    MaterialTheme.colorScheme.primaryContainer
-                } else {
-                    MaterialTheme.colorScheme.surfaceVariant
-                },
-            ),
-        ) {
-            Icon(
-                imageVector = if (isFavourite) {
-                    Icons.Filled.Favorite
-                } else {
-                    Icons.Outlined.FavoriteBorder
-                },
-                contentDescription = if (isFavourite) "Remove from favourites" else "Add to favourites",
-                tint = if (isFavourite) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-            )
-        }
+        // Favourite button with scale animation - using extracted component
+        FavoriteFilledIconButton(
+            isFavorite = isFavourite,
+            onToggle = onFavouriteToggle,
+        )
     }
 }
 

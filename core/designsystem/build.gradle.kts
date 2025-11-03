@@ -27,6 +27,13 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
 
+    // Lifecycle
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    // Hilt navigation for ViewModel injection
+    implementation(libs.androidx.hilt.navigation.compose)
+
     // DataStore for preferences
     implementation(libs.androidx.datastore.preferences)
 

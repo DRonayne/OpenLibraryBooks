@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -43,16 +41,17 @@ import com.darach.openlibrarybooks.core.domain.model.ReadingStatus
  * Includes:
  * - Book cover image with Coil loading and placeholder for missing covers
  * - Title and author text with ellipsize for long text
- * - Favourite icon overlay
+ * - Favourite icon button with toggle functionality and scale animation
  * - Loading state with shimmer effect
  * - Click callback for navigation
  *
  * @param book The book to display
  * @param onClick Callback when the card is clicked
+ * @param onFavoriteToggle Callback when the favourite button is clicked
  * @param modifier Modifier to be applied to the card
  */
 @Composable
-fun BookCard(book: Book, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun BookCard(book: Book, onClick: () -> Unit, onFavoriteToggle: () -> Unit, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -72,6 +71,7 @@ fun BookCard(book: Book, onClick: () -> Unit, modifier: Modifier = Modifier) {
                 coverUrl = book.coverUrl,
                 title = book.title,
                 isFavorite = book.isFavorite,
+                onFavoriteToggle = onFavoriteToggle,
             )
             BookInfo(
                 title = book.title,
@@ -82,11 +82,11 @@ fun BookCard(book: Book, onClick: () -> Unit, modifier: Modifier = Modifier) {
 }
 
 /**
- * Displays the book cover image with favourite icon overlay.
+ * Displays the book cover image with favourite icon button overlay.
  * Uses AsyncImage for better performance in lists (not SubcomposeAsyncImage).
  */
 @Composable
-private fun BookCoverImage(coverUrl: String?, title: String, isFavorite: Boolean) {
+private fun BookCoverImage(coverUrl: String?, title: String, isFavorite: Boolean, onFavoriteToggle: () -> Unit) {
     Box(
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -96,9 +96,10 @@ private fun BookCoverImage(coverUrl: String?, title: String, isFavorite: Boolean
             LoadedCoverImage(coverUrl, title)
         }
 
-        if (isFavorite) {
-            FavoriteIconOverlay()
-        }
+        FavoriteIconButton(
+            isFavorite = isFavorite,
+            onToggle = onFavoriteToggle,
+        )
     }
 }
 
@@ -162,21 +163,7 @@ private fun LoadedCoverImage(coverUrl: String, title: String) {
     }
 }
 
-/**
- * Favorite icon overlay shown on top-right of cover.
- */
-@Composable
-private fun BoxScope.FavoriteIconOverlay() {
-    Icon(
-        imageVector = Icons.Default.Favorite,
-        contentDescription = "Favourite",
-        modifier = Modifier
-            .align(Alignment.TopEnd)
-            .padding(8.dp)
-            .size(24.dp),
-        tint = MaterialTheme.colorScheme.error,
-    )
-}
+// FavoriteIconButton is now extracted to FavoriteButton.kt
 
 /**
  * Displays book title and authors.
@@ -288,6 +275,7 @@ private fun BookCardPreviewLight() {
                     isFavorite = false,
                 ),
                 onClick = {},
+                onFavoriteToggle = {},
                 modifier = Modifier.width(160.dp),
             )
 
@@ -301,6 +289,7 @@ private fun BookCardPreviewLight() {
                     isFavorite = true,
                 ),
                 onClick = {},
+                onFavoriteToggle = {},
                 modifier = Modifier.width(160.dp),
             )
         }
@@ -321,6 +310,7 @@ private fun BookCardPreviewDark() {
                 isFavorite = true,
             ),
             onClick = {},
+            onFavoriteToggle = {},
             modifier = Modifier
                 .width(160.dp)
                 .padding(16.dp),

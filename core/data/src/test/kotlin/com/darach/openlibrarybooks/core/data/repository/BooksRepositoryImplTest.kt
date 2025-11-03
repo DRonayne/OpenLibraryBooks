@@ -230,18 +230,18 @@ class BooksRepositoryImplTest {
     @Test
     fun `getBooks returns flow of cached books from database`() {
         // Given
-        val mockEntities = listOf(
-            createMockBookEntity("Book 1", ReadingStatus.WantToRead),
-            createMockBookEntity("Book 2", ReadingStatus.CurrentlyReading),
+        val mockBookWithFavorites = listOf(
+            createMockBookWithFavorite("Book 1", ReadingStatus.WantToRead, isFavorite = false),
+            createMockBookWithFavorite("Book 2", ReadingStatus.CurrentlyReading, isFavorite = true),
         )
-        every { mockBookDao.getAllBooks() } returns Flowable.just(mockEntities)
+        every { mockBookDao.getAllBooksWithFavorites() } returns Flowable.just(mockBookWithFavorites)
 
         // When
         repository.getBooks()
 
         // Then
         // Flow is tested by collecting values (would use turbine in production)
-        verify { mockBookDao.getAllBooks() }
+        verify { mockBookDao.getAllBooksWithFavorites() }
     }
 
     @Test
@@ -390,4 +390,16 @@ class BooksRepositoryImplTest {
         dateAdded = System.currentTimeMillis(),
         lastUpdated = System.currentTimeMillis(),
     )
+
+    private fun createMockBookWithFavorite(
+        title: String,
+        status: ReadingStatus,
+        isFavorite: Boolean,
+    ): com.darach.openlibrarybooks.core.database.entity.BookWithFavorite {
+        val bookEntity = createMockBookEntity(title, status)
+        return com.darach.openlibrarybooks.core.database.entity.BookWithFavorite(
+            bookEntity = bookEntity,
+            isFavorite = if (isFavorite) 1 else 0,
+        )
+    }
 }

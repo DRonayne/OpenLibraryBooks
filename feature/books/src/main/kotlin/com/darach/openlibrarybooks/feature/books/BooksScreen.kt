@@ -1,4 +1,4 @@
-@file:Suppress("MatchingDeclarationName", "TooManyFunctions")
+@file:Suppress("MatchingDeclarationName", "TooManyFunctions", "LongMethod", "LongParameterList")
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 
 package com.darach.openlibrarybooks.feature.books
@@ -65,6 +65,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -89,6 +90,14 @@ import com.darach.openlibrarybooks.core.domain.model.Book
 import com.darach.openlibrarybooks.core.domain.model.FilterOptions
 import com.darach.openlibrarybooks.core.domain.model.ReadingStatus
 import com.darach.openlibrarybooks.core.domain.model.SortOption
+import com.darach.openlibrarybooks.core.domain.repository.FavouritesRepository
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.kotlin.addTo
+import io.reactivex.rxjava3.kotlin.subscribeBy
 import kotlinx.coroutines.launch
 
 /**
@@ -103,6 +112,15 @@ data class BooksScreenCallbacks(
     val onFilterClick: () -> Unit = {},
     val onSortClick: () -> Unit = {},
 )
+
+/**
+ * Entry point for accessing FavouritesRepository in BooksScreen.
+ */
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface BooksScreenEntryPoint {
+    fun favouritesRepository(): FavouritesRepository
+}
 
 /**
  * State holder for books screen content.
@@ -126,9 +144,11 @@ private data class BooksContentState(
  * - Smooth animations for item placement
  * - Offline indicator
  * - Filter and sort buttons
+ * - Favourite toggle functionality on book cards
  *
  * @param modifier Modifier to be applied to the screen
  * @param viewModel ViewModel for managing books state
+ * @param bookDetailsViewModel ViewModel for managing book details
  * @param username Open Library username for syncing (defaults to placeholder)
  * @param callbacks Callbacks for user interactions
  */
@@ -140,6 +160,18 @@ fun BooksScreen(
     username: String = "mekBot",
     callbacks: BooksScreenCallbacks = BooksScreenCallbacks(),
 ) {
+    // Get FavouritesRepository using Hilt EntryPoint
+    val context = LocalContext.current
+    val favouritesRepository = remember {
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            BooksScreenEntryPoint::class.java,
+        ).favouritesRepository()
+    }
+
+    // Remember CompositeDisposable for RxJava subscriptions
+    val compositeDisposable = remember { CompositeDisposable() }
+
     val booksUiState by viewModel.booksUiState.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
@@ -183,7 +215,7 @@ fun BooksScreen(
                 book.workKey?.let { workKey ->
                     val workId = workKey.removePrefix("/works/")
                     val editionId = book.editionKey?.removePrefix("/books/")
-                    bookDetailsViewModel.loadBookDetails(workId, editionId)
+                    bookDetailsViewModel.loadBookDetails(workId, editionId, book.id)
                     showBookDetails = true
                 }
             },
@@ -192,6 +224,19 @@ fun BooksScreen(
         ),
         onRefresh = { viewModel.refresh(username) },
         onRetry = { viewModel.refresh(username) },
+        onFavoriteToggle = { bookId ->
+            // Toggle favourite using repository
+            favouritesRepository.toggleFavourite(bookId)
+                .subscribeBy(
+                    onComplete = {
+                        // Success - no action needed as UI will update automatically
+                    },
+                    onError = { error ->
+                        // TODO: Show error to user
+                    },
+                )
+                .addTo(compositeDisposable)
+        },
         filterOptions = filterOptions,
         onReadingStatusChange = { statuses ->
             viewModel.updateFilters(filterOptions.copy(readingStatuses = statuses))
@@ -226,6 +271,7 @@ fun BooksScreen(
     }
 
     // Show book details bottom sheet
+    @Suppress("ViewModelForwarding") // ViewModel is scoped to parent composable
     if (showBookDetails) {
         BookDetailsBottomSheet(
             viewModel = bookDetailsViewModel,
@@ -263,6 +309,7 @@ private fun BooksScreenContent(
     filterOptions: FilterOptions,
     onRefresh: () -> Unit,
     onRetry: () -> Unit,
+    onFavoriteToggle: (String) -> Unit,
     onReadingStatusChange: (Set<ReadingStatus>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -292,6 +339,7 @@ private fun BooksScreenContent(
                 uiState = state.booksUiState,
                 isRefreshing = state.isRefreshing,
                 onBookClick = callbacks.onBookClick,
+                onFavoriteToggle = onFavoriteToggle,
                 onRetry = onRetry,
             )
         }
@@ -306,6 +354,7 @@ private fun BooksStateContent(
     uiState: UiState<List<Book>>,
     isRefreshing: Boolean,
     onBookClick: (Book) -> Unit,
+    onFavoriteToggle: (String) -> Unit,
     onRetry: () -> Unit,
 ) {
     when (uiState) {
@@ -330,6 +379,7 @@ private fun BooksStateContent(
                     books = uiState.data,
                     isRefreshing = isRefreshing,
                     onBookClick = onBookClick,
+                    onFavoriteToggle = onFavoriteToggle,
                 )
             }
         }
@@ -548,12 +598,14 @@ private fun ReadingStatusTabs(
  * - Smooth animations when items are added/removed
  * - Fade-in animation for books
  * - Fade-out animation during refresh
+ * - Favourite toggle functionality on book cards
  */
 @Composable
 private fun BooksGrid(
     books: List<Book>,
     isRefreshing: Boolean,
     onBookClick: (Book) -> Unit,
+    onFavoriteToggle: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // Animate the visibility of the grid during refresh
@@ -576,6 +628,7 @@ private fun BooksGrid(
                 BookCard(
                     book = book,
                     onClick = { onBookClick(book) },
+                    onFavoriteToggle = { onFavoriteToggle(book.id) },
                     modifier = Modifier.animateItem(
                         fadeInSpec = tween(durationMillis = 300),
                         fadeOutSpec = tween(durationMillis = 200),
@@ -1078,6 +1131,7 @@ private fun BooksGridPreviewLight() {
             books = sampleBooks,
             isRefreshing = false,
             onBookClick = {},
+            onFavoriteToggle = {},
         )
     }
 }
@@ -1109,6 +1163,7 @@ private fun BooksGridPreviewDark() {
             books = sampleBooks,
             isRefreshing = false,
             onBookClick = {},
+            onFavoriteToggle = {},
         )
     }
 }

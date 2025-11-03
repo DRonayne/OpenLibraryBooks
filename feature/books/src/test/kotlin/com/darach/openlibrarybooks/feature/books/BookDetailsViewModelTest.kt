@@ -239,8 +239,9 @@ class BookDetailsViewModelTest {
 
     @Test
     fun `checks favourite status after loadBookDetails is called`() = runTest {
+        val bookId = "lotr_jrrtolkien"
         every { mockBooksRepository.getWorkDetails("OL45804W") } returns Single.just(sampleWorkDetails)
-        every { mockFavouritesRepository.isFavourite("OL45804W") } returns Single.just(true)
+        every { mockFavouritesRepository.isFavourite(bookId) } returns Single.just(true)
 
         val viewModel = createViewModel()
 
@@ -248,7 +249,7 @@ class BookDetailsViewModelTest {
             // Initial state is false
             awaitItem() shouldBe false
 
-            viewModel.loadBookDetails("OL45804W")
+            viewModel.loadBookDetails("OL45804W", bookId = bookId)
 
             // After loading, should be true
             awaitItem() shouldBe true
@@ -256,17 +257,18 @@ class BookDetailsViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
 
-        verify { mockFavouritesRepository.isFavourite("OL45804W") }
+        verify { mockFavouritesRepository.isFavourite(bookId) }
     }
 
     @Test
     fun `toggleFavourite updates favourite status`() = runTest {
+        val bookId = "lotr_jrrtolkien"
         every { mockBooksRepository.getWorkDetails("OL45804W") } returns Single.just(sampleWorkDetails)
-        every { mockFavouritesRepository.isFavourite("OL45804W") } returns Single.just(false)
-        every { mockFavouritesRepository.toggleFavourite("OL45804W") } returns Completable.complete()
+        every { mockFavouritesRepository.isFavourite(bookId) } returns Single.just(false)
+        every { mockFavouritesRepository.toggleFavourite(bookId) } returns Completable.complete()
 
         val viewModel = createViewModel()
-        viewModel.loadBookDetails("OL45804W")
+        viewModel.loadBookDetails("OL45804W", bookId = bookId)
 
         viewModel.isFavourite.test {
             // Initial state
@@ -281,18 +283,19 @@ class BookDetailsViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
 
-        verify { mockFavouritesRepository.toggleFavourite("OL45804W") }
+        verify { mockFavouritesRepository.toggleFavourite(bookId) }
     }
 
     @Test
     fun `toggleFavourite reverts on error`() = runTest {
+        val bookId = "lotr_jrrtolkien"
         val error = IOException("Database error")
         every { mockBooksRepository.getWorkDetails("OL45804W") } returns Single.just(sampleWorkDetails)
-        every { mockFavouritesRepository.isFavourite("OL45804W") } returns Single.just(false)
-        every { mockFavouritesRepository.toggleFavourite("OL45804W") } returns Completable.error(error)
+        every { mockFavouritesRepository.isFavourite(bookId) } returns Single.just(false)
+        every { mockFavouritesRepository.toggleFavourite(bookId) } returns Completable.error(error)
 
         val viewModel = createViewModel()
-        viewModel.loadBookDetails("OL45804W")
+        viewModel.loadBookDetails("OL45804W", bookId = bookId)
 
         viewModel.isFavourite.test {
             // Initial state

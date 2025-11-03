@@ -383,5 +383,4 @@ class FavouritesViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
-
 }

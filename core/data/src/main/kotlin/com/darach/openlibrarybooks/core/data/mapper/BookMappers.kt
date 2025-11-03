@@ -1,6 +1,7 @@
 package com.darach.openlibrarybooks.core.data.mapper
 
 import com.darach.openlibrarybooks.core.database.entity.BookEntity
+import com.darach.openlibrarybooks.core.database.entity.BookWithFavorite
 import com.darach.openlibrarybooks.core.domain.model.Book
 
 /**
@@ -42,6 +43,27 @@ fun Book.toBookEntity(): BookEntity = BookEntity(
     editionKey = editionKey,
     dateAdded = dateAdded,
     lastUpdated = System.currentTimeMillis(),
+)
+
+/**
+ * Convert a BookWithFavorite (joined query result) to a domain Book model.
+ * Includes the favorite status from the join with the favourites table.
+ *
+ * @return Book domain model with correct favorite status
+ */
+fun BookWithFavorite.toBook(): Book = Book(
+    id = bookEntity.compositeKey,
+    title = bookEntity.title,
+    authors = bookEntity.authors,
+    coverUrl = bookEntity.coverUrl,
+    publishYear = bookEntity.firstPublishYear,
+    description = bookEntity.description,
+    subjects = bookEntity.subjects,
+    readingStatus = bookEntity.readingStatus,
+    isFavorite = isFavoriteBoolean,
+    workKey = bookEntity.workKey,
+    editionKey = bookEntity.editionKey,
+    dateAdded = bookEntity.dateAdded,
 )
 
 /**

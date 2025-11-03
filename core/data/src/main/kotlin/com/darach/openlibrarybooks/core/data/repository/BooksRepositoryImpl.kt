@@ -212,16 +212,17 @@ class BooksRepositoryImpl @Inject constructor(private val api: OpenLibraryApi, p
     }
 
     /**
-     * Observe all cached books from the local database.
+     * Observe all cached books from the local database with favorite status.
      *
      * Implements offline-first strategy by always returning cached data first.
      * The UI can trigger sync separately to refresh data.
+     * Uses LEFT JOIN with favourites table to include correct favorite status.
      *
-     * @return Flow emitting the list of all cached books
+     * @return Flow emitting the list of all cached books with favorite status
      */
-    override fun getBooks(): Flow<List<Book>> = bookDao.getAllBooks()
-        .map { entities ->
-            entities.map { it.toBook() }
+    override fun getBooks(): Flow<List<Book>> = bookDao.getAllBooksWithFavorites()
+        .map { booksWithFavorites ->
+            booksWithFavorites.map { it.toBook() }
         }
         .subscribeOn(Schedulers.io())
         .toObservable()

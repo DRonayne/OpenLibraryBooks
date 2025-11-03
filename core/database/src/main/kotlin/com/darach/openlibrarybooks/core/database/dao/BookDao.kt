@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.darach.openlibrarybooks.core.database.entity.BookEntity
+import com.darach.openlibrarybooks.core.database.entity.BookWithFavorite
 import com.darach.openlibrarybooks.core.domain.model.ReadingStatus
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Flowable
@@ -18,6 +19,7 @@ import io.reactivex.rxjava3.core.Single
  * Also includes suspend functions for write operations to support coroutines.
  * Uses REPLACE strategy for inserts to handle updates automatically.
  */
+@Suppress("TooManyFunctions") // DAOs naturally have many methods for database operations
 @Dao
 interface BookDao {
 
@@ -58,8 +60,29 @@ interface BookDao {
     suspend fun update(book: BookEntity)
 
     /**
+     * Get all books from the database with their favorite status.
+     * Uses LEFT JOIN to include favorite status from the favourites table.
+     * Emits a new list whenever the data changes.
+     *
+     * @return Flowable emitting the list of all books with favorite status
+     */
+    @Query(
+        """
+        SELECT
+            books.*,
+            CASE WHEN favourites.book_composite_key IS NOT NULL THEN 1 ELSE 0 END as is_favorite
+        FROM books
+        LEFT JOIN favourites ON books.composite_key = favourites.book_composite_key
+        ORDER BY books.date_added DESC
+        """,
+    )
+    fun getAllBooksWithFavorites(): Flowable<List<BookWithFavorite>>
+
+    /**
      * Get all books from the database, ordered by date added (newest first).
      * Emits a new list whenever the data changes.
+     *
+     * Note: This query does NOT include favorite status. Use getAllBooksWithFavorites() instead.
      *
      * @return Flowable emitting the list of all books
      */
