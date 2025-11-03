@@ -179,7 +179,7 @@ private fun ColorScheme.animate(): ColorScheme {
 @Composable
 fun OpenLibraryTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     animateThemeChanges: Boolean = true,
     content: @Composable () -> Unit,
 ) {

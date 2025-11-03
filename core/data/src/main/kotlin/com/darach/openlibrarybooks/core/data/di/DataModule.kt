@@ -1,7 +1,9 @@
 package com.darach.openlibrarybooks.core.data.di
 
 import com.darach.openlibrarybooks.core.data.repository.BooksRepositoryImpl
+import com.darach.openlibrarybooks.core.data.repository.FavouritesRepositoryImpl
 import com.darach.openlibrarybooks.core.domain.repository.BooksRepository
+import com.darach.openlibrarybooks.core.domain.repository.FavouritesRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -27,4 +29,14 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindBooksRepository(impl: BooksRepositoryImpl): BooksRepository
+
+    /**
+     * Provide FavouritesRepository implementation.
+     *
+     * @param impl The concrete implementation
+     * @return The repository interface
+     */
+    @Binds
+    @Singleton
+    abstract fun bindFavouritesRepository(impl: FavouritesRepositoryImpl): FavouritesRepository
 }

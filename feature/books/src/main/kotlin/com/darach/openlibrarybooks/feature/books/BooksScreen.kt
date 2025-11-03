@@ -7,6 +7,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -46,6 +47,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -60,13 +62,13 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.widget.AutoSizeableTextView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.darach.openlibrarybooks.core.common.ui.UiState
@@ -78,6 +80,8 @@ import com.darach.openlibrarybooks.core.designsystem.component.ErrorState
 import com.darach.openlibrarybooks.core.designsystem.component.ErrorType
 import com.darach.openlibrarybooks.core.designsystem.component.OfflineIndicator
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
+import com.darach.openlibrarybooks.core.designsystem.theme.goldOchre
+import com.darach.openlibrarybooks.core.designsystem.theme.primaryLight
 import com.darach.openlibrarybooks.core.domain.model.Book
 import com.darach.openlibrarybooks.core.domain.model.FilterOptions
 import com.darach.openlibrarybooks.core.domain.model.ReadingStatus
@@ -129,6 +133,7 @@ private data class BooksContentState(
 fun BooksScreen(
     modifier: Modifier = Modifier,
     viewModel: BooksViewModel = hiltViewModel(),
+    bookDetailsViewModel: BookDetailsViewModel = hiltViewModel(),
     username: String = "mekBot",
     callbacks: BooksScreenCallbacks = BooksScreenCallbacks(),
 ) {
@@ -146,11 +151,7 @@ fun BooksScreen(
     // State for showing/hiding bottom sheets
     var showFilterSheet by remember { mutableStateOf(false) }
     var showSortSheet by remember { mutableStateOf(false) }
-
-    // Trigger initial book fetch when screen is first displayed
-    LaunchedEffect(username) {
-        viewModel.refresh(username)
-    }
+    var showBookDetails by remember { mutableStateOf(false) }
 
     // Handle error messages
     HandleErrorMessages(
@@ -174,6 +175,15 @@ fun BooksScreen(
         modifier = modifier,
         state = contentState,
         callbacks = callbacks.copy(
+            onBookClick = { book ->
+                // Show book details in modal bottom sheet instead of navigating
+                book.workKey?.let { workKey ->
+                    val workId = workKey.removePrefix("/works/")
+                    val editionId = book.editionKey?.removePrefix("/books/")
+                    bookDetailsViewModel.loadBookDetails(workId, editionId)
+                    showBookDetails = true
+                }
+            },
             onFilterClick = { showFilterSheet = true },
             onSortClick = { showSortSheet = true },
         ),
@@ -209,6 +219,14 @@ fun BooksScreen(
                 showSortSheet = false
             },
             onDismiss = { showSortSheet = false },
+        )
+    }
+
+    // Show book details bottom sheet
+    if (showBookDetails) {
+        BookDetailsBottomSheet(
+            viewModel = bookDetailsViewModel,
+            onDismiss = { showBookDetails = false },
         )
     }
 }
@@ -417,6 +435,11 @@ private fun BooksTopAppBar(
                 else -> 0 // Default to "Want to Read" if none selected
             }
 
+            // Only use goldOchre for light theme with static colours (not dynamic)
+            val isDarkTheme = isSystemInDarkTheme()
+            val isUsingStaticColors = MaterialTheme.colorScheme.primary == primaryLight
+            val shouldUseGoldOchre = !isDarkTheme && isUsingStaticColors
+
             options.forEachIndexed { index, (label, status) ->
                 ToggleButton(
                     checked = index == selectedIndex,
@@ -432,11 +455,20 @@ private fun BooksTopAppBar(
                         options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                         else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                     },
+                    colors = if (shouldUseGoldOchre) {
+                        ToggleButtonDefaults.toggleButtonColors(
+                            checkedContainerColor = goldOchre,
+                            checkedContentColor = Color.Black,
+                        )
+                    } else {
+                        ToggleButtonDefaults.toggleButtonColors()
+                    },
                 ) {
                     Text(
                         text = label,
                         maxLines = 1,
-                        style = MaterialTheme.typography.labelMedium)
+                        style = MaterialTheme.typography.labelMedium,
+                    )
                 }
             }
         }
