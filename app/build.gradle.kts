@@ -20,4 +20,7 @@ dependencies {
     // Compose dependencies (BOM and common libraries added by convention plugin)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+
+    // Konsist for architecture testing
+    testImplementation(libs.konsist)
 }
