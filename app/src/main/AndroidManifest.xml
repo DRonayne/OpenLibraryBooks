@@ -25,6 +25,18 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Deeplink for widget to open favourites screen -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="openlibrarybooks"
+                    android:host="favourites" />
+            </intent-filter>
         </activity>
 
         <!-- Disable default WorkManager initialisation since we use on-demand initialisation

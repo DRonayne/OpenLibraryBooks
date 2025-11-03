@@ -1,7 +1,14 @@
 package com.darach.openlibrarybooks.core.designsystem.component
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,9 +28,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,8 +42,52 @@ import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
+import com.darach.openlibrarybooks.core.designsystem.util.rememberHapticFeedback
+import com.darach.openlibrarybooks.core.designsystem.util.springSpec
 import com.darach.openlibrarybooks.core.domain.model.Book
 import com.darach.openlibrarybooks.core.domain.model.ReadingStatus
+
+/**
+ * Holds animation values for BookCard interactions.
+ *
+ * @property scale The scale factor for the card
+ * @property elevation The elevation value in dp for the card shadow
+ */
+private data class BookCardAnimationState(val scale: Float, val elevation: Float)
+
+/**
+ * Remembers and animates the card state based on hover and press interactions.
+ */
+@Composable
+private fun rememberBookCardAnimationState(isHovered: Boolean, isPressed: Boolean): BookCardAnimationState {
+    val scale by animateFloatAsState(
+        targetValue = when {
+            isPressed -> 0.95f
+            isHovered -> 1.02f
+            else -> 1.0f
+        },
+        animationSpec = springSpec(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow,
+        ),
+        label = "card_scale",
+    )
+
+    val elevation by animateFloatAsState(
+        targetValue = when {
+            isPressed -> 1f
+            isHovered -> 6f
+            else -> 2f
+        },
+        animationSpec = springSpec(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium,
+        ),
+        label = "card_elevation",
+    )
+
+    return BookCardAnimationState(scale, elevation)
+}
 
 /**
  * Card component for displaying a book with cover, title, authors, and favourite status.
@@ -44,24 +98,48 @@ import com.darach.openlibrarybooks.core.domain.model.ReadingStatus
  * - Favourite icon button with toggle functionality and scale animation
  * - Loading state with shimmer effect
  * - Click callback for navigation
+ * - Interactive animations: scale on press, elevation on hover, long-press support
  *
  * @param book The book to display
  * @param onClick Callback when the card is clicked
  * @param onFavoriteToggle Callback when the favourite button is clicked
  * @param modifier Modifier to be applied to the card
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BookCard(book: Book, onClick: () -> Unit, onFavoriteToggle: () -> Unit, modifier: Modifier = Modifier) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val haptic = rememberHapticFeedback()
+    val animationState = rememberBookCardAnimationState(isHovered, isPressed)
+
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .graphicsLayer {
+                scaleX = animationState.scale
+                scaleY = animationState.scale
+            }
+            .hoverable(interactionSource)
+            .combinedClickable(
+                onClick = {
+                    haptic.click()
+                    onClick()
+                },
+                onLongClick = {
+                    haptic.longPress()
+                    onClick() // Long press opens same detail view
+                },
+                interactionSource = interactionSource,
+                indication = null, // We're handling visual feedback with scale/elevation
+            ),
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp,
+            defaultElevation = animationState.elevation.dp,
         ),
     ) {
         Column(

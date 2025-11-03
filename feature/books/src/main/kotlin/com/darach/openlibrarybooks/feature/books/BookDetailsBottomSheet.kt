@@ -81,9 +81,7 @@ fun BookDetailsBottomSheet(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: BookDetailsViewModel = hiltViewModel(),
-    sheetState: SheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = false,
-    ),
+    sheetState: SheetState = rememberModalBottomSheetState(),
 ) {
     val workDetailsState by viewModel.workDetailsState.collectAsStateWithLifecycle()
     val isFavourite by viewModel.isFavourite.collectAsStateWithLifecycle()
@@ -400,7 +398,6 @@ private fun BookDetailsContent(
     onClose: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
-    val screenHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp
 
     Box(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -433,9 +430,6 @@ private fun BookDetailsContent(
                         .padding(horizontal = 24.dp),
                 )
             }
-
-            // Spacer to encourage ~65% initial expansion
-            Box(modifier = Modifier.height(screenHeight * 0.15f))
         }
     }
 }

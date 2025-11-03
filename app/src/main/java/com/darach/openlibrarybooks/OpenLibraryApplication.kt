@@ -3,6 +3,7 @@ package com.darach.openlibrarybooks
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.darach.openlibrarybooks.feature.widget.WidgetUpdater
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -22,4 +23,11 @@ class OpenLibraryApplication :
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
             .build()
+
+    override fun onCreate() {
+        super.onCreate()
+
+        // Update widget when app launches to refresh favourite books
+        WidgetUpdater.updateFavouritesWidget(this)
+    }
 }

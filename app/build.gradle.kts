@@ -51,6 +51,7 @@ dependencies {
     implementation(project(":feature:books"))
     implementation(project(":feature:favourites"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:widget"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

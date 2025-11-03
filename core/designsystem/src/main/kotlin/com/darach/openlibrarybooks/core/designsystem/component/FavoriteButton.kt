@@ -1,7 +1,7 @@
 package com.darach.openlibrarybooks.core.designsystem.component
 
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -17,18 +17,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
 import com.darach.openlibrarybooks.core.designsystem.theme.goldOchre
 import com.darach.openlibrarybooks.core.designsystem.theme.primaryDark
 import com.darach.openlibrarybooks.core.designsystem.theme.primaryLight
+import com.darach.openlibrarybooks.core.designsystem.util.rememberHapticFeedback
+import com.darach.openlibrarybooks.core.designsystem.util.springSpec
 
 /**
  * A favourite button with a heart icon that animates when toggled.
  *
  * Displays a filled heart when favourited, outlined heart when not.
- * Scales up slightly when favourited for visual feedback.
+ * Animates with spring physics and rotation when favourited for delightful feedback.
+ * Includes haptic feedback on toggle for tactile confirmation.
  *
  * @param isFavorite Whether the item is currently favourited
  * @param onToggle Callback when the button is clicked
@@ -36,12 +40,20 @@ import com.darach.openlibrarybooks.core.designsystem.theme.primaryLight
  */
 @Composable
 fun FavoriteIconButton(isFavorite: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
-    // Animate scale when favourite status changes
+    val haptic = rememberHapticFeedback()
+
+    // Animate scale with spring physics for bouncy, natural movement (respects reduced motion)
     val scale by animateFloatAsState(
-        targetValue = if (isFavorite) 1.1f else 1f,
-        animationSpec = tween(durationMillis = 200),
+        targetValue = if (isFavorite) 1.15f else 1f,
+        animationSpec = springSpec(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow,
+        ),
         label = "favorite_scale",
     )
+
+    // No rotation - it stays level
+    val rotation = 0f
 
     // Check if we're using static (green/gold) colours or dynamic theming
     val currentPrimary = MaterialTheme.colorScheme.primary
@@ -51,8 +63,15 @@ fun FavoriteIconButton(isFavorite: Boolean, onToggle: () -> Unit, modifier: Modi
     val iconTint = if (isUsingStaticColors) goldOchre else MaterialTheme.colorScheme.tertiary
 
     IconButton(
-        onClick = onToggle,
-        modifier = modifier.scale(scale),
+        onClick = {
+            haptic.click()
+            onToggle()
+        },
+        modifier = modifier.graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+            rotationZ = rotation
+        },
         colors = IconButtonDefaults.iconButtonColors(
             containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
         ),
@@ -70,7 +89,8 @@ fun FavoriteIconButton(isFavorite: Boolean, onToggle: () -> Unit, modifier: Modi
  *
  * Uses a filled icon button style with different container colours based on state.
  * Displays a filled heart when favourited, outlined heart when not.
- * Scales up slightly when favourited for visual feedback.
+ * Animates with spring physics and rotation when favourited for delightful feedback.
+ * Includes haptic feedback on toggle for tactile confirmation.
  *
  * @param isFavorite Whether the item is currently favourited
  * @param onToggle Callback when the button is clicked
@@ -78,12 +98,20 @@ fun FavoriteIconButton(isFavorite: Boolean, onToggle: () -> Unit, modifier: Modi
  */
 @Composable
 fun FavoriteFilledIconButton(isFavorite: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
-    // Animate scale when favourite status changes
+    val haptic = rememberHapticFeedback()
+
+    // Animate scale with spring physics for bouncy, natural movement (respects reduced motion)
     val scale by animateFloatAsState(
-        targetValue = if (isFavorite) 1.1f else 1f,
-        animationSpec = tween(durationMillis = 200),
+        targetValue = if (isFavorite) 1.15f else 1f,
+        animationSpec = springSpec(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow,
+        ),
         label = "favorite_scale",
     )
+
+    // No rotation - it stays level
+    val rotation = 0f
 
     // Check if we're using static (green/gold) colours or dynamic theming
     val currentPrimary = MaterialTheme.colorScheme.primary
@@ -97,8 +125,15 @@ fun FavoriteFilledIconButton(isFavorite: Boolean, onToggle: () -> Unit, modifier
     }
 
     FilledIconButton(
-        onClick = onToggle,
-        modifier = modifier.scale(scale),
+        onClick = {
+            haptic.click()
+            onToggle()
+        },
+        modifier = modifier.graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+            rotationZ = rotation
+        },
         colors = IconButtonDefaults.filledIconButtonColors(
             containerColor = if (isFavorite) {
                 MaterialTheme.colorScheme.primaryContainer
@@ -120,6 +155,8 @@ fun FavoriteFilledIconButton(isFavorite: Boolean, onToggle: () -> Unit, modifier
  *
  * This is a [BoxScope] extension that automatically positions the button
  * in the top-end corner with padding. Perfect for overlaying on book cards.
+ * Animates with spring physics and rotation when favourited for delightful feedback.
+ * Includes haptic feedback on toggle for tactile confirmation.
  *
  * @param isFavorite Whether the item is currently favourited
  * @param onToggle Callback when the button is clicked
@@ -127,12 +164,20 @@ fun FavoriteFilledIconButton(isFavorite: Boolean, onToggle: () -> Unit, modifier
  */
 @Composable
 fun BoxScope.FavoriteIconButton(isFavorite: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
-    // Animate scale when favourite status changes
+    val haptic = rememberHapticFeedback()
+
+    // Animate scale with spring physics for bouncy, natural movement (respects reduced motion)
     val scale by animateFloatAsState(
-        targetValue = if (isFavorite) 1.1f else 1f,
-        animationSpec = tween(durationMillis = 200),
+        targetValue = if (isFavorite) 1.15f else 1f,
+        animationSpec = springSpec(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow,
+        ),
         label = "favorite_scale",
     )
+
+    // No rotation - it stays level
+    val rotation = 0f
 
     // Check if we're using static (green/gold) colours or dynamic theming
     val currentPrimary = MaterialTheme.colorScheme.primary
@@ -146,11 +191,18 @@ fun BoxScope.FavoriteIconButton(isFavorite: Boolean, onToggle: () -> Unit, modif
     }
 
     IconButton(
-        onClick = onToggle,
+        onClick = {
+            haptic.click()
+            onToggle()
+        },
         modifier = modifier
             .align(Alignment.TopEnd)
             .padding(4.dp)
-            .scale(scale),
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                rotationZ = rotation
+            },
         colors = IconButtonDefaults.iconButtonColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),

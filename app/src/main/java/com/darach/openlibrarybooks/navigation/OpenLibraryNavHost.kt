@@ -1,5 +1,8 @@
 package com.darach.openlibrarybooks.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,6 +18,9 @@ import com.darach.openlibrarybooks.feature.settings.SettingsScreen
  * Defines the navigation graph for the Open Library Books app.
  * Uses type-safe navigation with Kotlin Serialization.
  *
+ * Includes smooth fade transitions between destinations using Material motion easing.
+ * Enter duration: 300ms, Exit duration: 200ms for a polished navigation experience.
+ *
  * @param navController The navigation controller managing the back stack
  * @param modifier Optional modifier for the NavHost
  */
@@ -25,6 +31,10 @@ fun OpenLibraryNavHost(navController: NavHostController, modifier: Modifier = Mo
         navController = navController,
         startDestination = BooksRoute,
         modifier = modifier,
+        enterTransition = { fadeIn(animationSpec = tween(300)) },
+        exitTransition = { fadeOut(animationSpec = tween(200)) },
+        popEnterTransition = { fadeIn(animationSpec = tween(300)) },
+        popExitTransition = { fadeOut(animationSpec = tween(200)) },
     ) {
         // Books screen - main reading list
         // Book details are handled internally in BooksScreen with ModalBottomSheet
