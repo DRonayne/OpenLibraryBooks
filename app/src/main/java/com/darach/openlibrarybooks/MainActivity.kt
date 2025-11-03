@@ -6,21 +6,25 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.darach.openlibrarybooks.core.designsystem.theme.OpenLibraryTheme
-import com.darach.openlibrarybooks.feature.books.BooksScreen
-import com.darach.openlibrarybooks.feature.favourites.FavouritesScreen
-import com.darach.openlibrarybooks.feature.settings.SettingsScreen
-import com.darach.openlibrarybooks.navigation.NavigationDestination
+import com.darach.openlibrarybooks.navigation.BooksRoute
+import com.darach.openlibrarybooks.navigation.FavouritesRoute
+import com.darach.openlibrarybooks.navigation.OpenLibraryNavHost
+import com.darach.openlibrarybooks.navigation.SettingsRoute
+import com.darach.openlibrarybooks.navigation.TopLevelDestination
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
  * Main entry point for the Open Library Books app.
  * Implements adaptive navigation that switches between bottom nav (mobile) and nav rail (tablet).
+ * Uses type-safe navigation with Kotlin Serialization.
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -29,41 +33,72 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             OpenLibraryTheme {
-                var selectedDestination by rememberSaveable {
-                    mutableStateOf(NavigationDestination.BOOKS)
-                }
-
-                NavigationSuiteScaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    navigationSuiteItems = {
-                        NavigationDestination.entries.forEach { destination ->
-                            item(
-                                icon = {
-                                    androidx.compose.material3.Icon(
-                                        imageVector =
-                                        if (selectedDestination == destination) {
-                                            destination.iconSelected
-                                        } else {
-                                            destination.iconUnselected
-                                        },
-                                        contentDescription = destination.label,
-                                    )
-                                },
-                                label = { androidx.compose.material3.Text(destination.label) },
-                                selected = selectedDestination == destination,
-                                onClick = { selectedDestination = destination },
-                            )
-                        }
-                    },
-                ) {
-                    // Display the appropriate screen based on selected destination
-                    when (selectedDestination) {
-                        NavigationDestination.BOOKS -> BooksScreen()
-                        NavigationDestination.FAVOURITES -> FavouritesScreen()
-                        NavigationDestination.SETTINGS -> SettingsScreen()
-                    }
-                }
+                OpenLibraryApp()
             }
         }
+    }
+}
+
+/**
+ * Main app composable that sets up navigation and adaptive UI.
+ */
+@Composable
+private fun OpenLibraryApp() {
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+
+    NavigationSuiteScaffold(
+        modifier = Modifier.fillMaxSize(),
+        navigationSuiteItems = {
+            TopLevelDestination.entries.forEach { destination ->
+                val isSelected = currentDestination?.hierarchy?.any { navDest ->
+                    when (destination) {
+                        TopLevelDestination.BOOKS -> navDest.hasRoute(BooksRoute::class)
+                        TopLevelDestination.FAVOURITES -> navDest.hasRoute(FavouritesRoute::class)
+                        TopLevelDestination.SETTINGS -> navDest.hasRoute(SettingsRoute::class)
+                    }
+                } == true
+
+                item(
+                    icon = {
+                        androidx.compose.material3.Icon(
+                            imageVector = if (isSelected) {
+                                destination.iconSelected
+                            } else {
+                                destination.iconUnselected
+                            },
+                            contentDescription = destination.label,
+                        )
+                    },
+                    label = { androidx.compose.material3.Text(destination.label) },
+                    selected = isSelected,
+                    onClick = {
+                        // Navigate to the selected destination, clearing back stack to start
+                        val targetRoute = when (destination) {
+                            TopLevelDestination.BOOKS -> BooksRoute
+                            TopLevelDestination.FAVOURITES -> FavouritesRoute
+                            TopLevelDestination.SETTINGS -> SettingsRoute
+                        }
+
+                        navController.navigate(targetRoute) {
+                            // Pop up to the start destination and save state
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            // Avoid multiple copies of the same destination
+                            launchSingleTop = true
+                            // Restore state when navigating back to a destination
+                            restoreState = true
+                        }
+                    },
+                )
+            }
+        },
+    ) {
+        OpenLibraryNavHost(
+            navController = navController,
+            modifier = Modifier.fillMaxSize(),
+        )
     }
 }

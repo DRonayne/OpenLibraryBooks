@@ -4,6 +4,7 @@ import java.util.Properties
 plugins {
     id("openlibrarybooks.android.application")
     id("openlibrarybooks.android.hilt")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 // Load local.properties
@@ -56,6 +57,11 @@ dependencies {
     // Material 3 Adaptive Navigation
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
     implementation(libs.androidx.compose.material.icons.extended)
+
+    // Navigation Compose with type-safe arguments
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
 
     // WorkManager with Hilt and RxJava3
     implementation(libs.androidx.work.runtime.ktx)

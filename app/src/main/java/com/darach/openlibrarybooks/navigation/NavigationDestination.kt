@@ -8,31 +8,57 @@ import androidx.compose.material.icons.outlined.Book
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
+import kotlinx.serialization.Serializable
 
 /**
- * Represents the top-level navigation destinations in the app.
- * Each destination has both filled and outlined icons for selected/unselected states.
+ * Defines type-safe navigation destinations using Kotlin Serialization.
+ * Top-level destinations use data objects, whilst destinations with arguments use data classes.
  */
-enum class NavigationDestination(
-    val route: String,
-    val label: String,
-    val iconSelected: ImageVector,
-    val iconUnselected: ImageVector,
-) {
+
+/**
+ * Books screen - displays the user's reading list
+ */
+@Serializable
+data object BooksRoute
+
+/**
+ * Favourites screen - shows favourite books
+ */
+@Serializable
+data object FavouritesRoute
+
+/**
+ * Settings screen - app configuration
+ */
+@Serializable
+data object SettingsRoute
+
+/**
+ * Book details screen - shows detailed info about a specific book.
+ * Configured to display as a bottom sheet.
+ *
+ * @param workId The Open Library work identifier (e.g., "OL45804W")
+ * @param editionId Optional edition identifier for specific book editions
+ */
+@Serializable
+data class BookDetailsRoute(val workId: String, val editionId: String? = null)
+
+/**
+ * Enum defining the main navigation destinations with their display properties.
+ * Used for bottom navigation and navigation rail UI.
+ */
+enum class TopLevelDestination(val label: String, val iconSelected: ImageVector, val iconUnselected: ImageVector) {
     BOOKS(
-        route = "books",
         label = "Books",
         iconSelected = Icons.Filled.Book,
         iconUnselected = Icons.Outlined.Book,
     ),
     FAVOURITES(
-        route = "favourites",
         label = "Favourites",
         iconSelected = Icons.Filled.Favorite,
         iconUnselected = Icons.Outlined.FavoriteBorder,
     ),
     SETTINGS(
-        route = "settings",
         label = "Settings",
         iconSelected = Icons.Filled.Settings,
         iconUnselected = Icons.Outlined.Settings,
