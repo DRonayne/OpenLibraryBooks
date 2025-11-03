@@ -14,6 +14,12 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/favourites_widget_info" />
         </receiver>
+
+        <!-- Trampoline activity for widget clicks to navigate to favourites -->
+        <activity
+            android:name=".WidgetLauncherActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.NoDisplay" />
     </application>
 
 </manifest>

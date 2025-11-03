@@ -1,10 +1,14 @@
 package com.darach.openlibrarybooks.core.data.repository
 
+import android.content.Context
 import android.util.Log
+import androidx.work.ExistingWorkPolicy
+import androidx.work.WorkManager
 import com.darach.openlibrarybooks.core.data.mapper.toBook
 import com.darach.openlibrarybooks.core.database.dao.FavouritesDao
 import com.darach.openlibrarybooks.core.domain.model.Book
 import com.darach.openlibrarybooks.core.domain.repository.FavouritesRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
@@ -20,13 +24,25 @@ import javax.inject.Singleton
  * for observing favourites data. Delegates favourite management to FavouritesDao
  * which maintains a separate favourites table with JOIN queries for book details.
  *
+ * Also triggers widget updates when favourites change by enqueueing a background
+ * worker to cache book cover images for the widget.
+ *
  * @property favouritesDao The local database DAO for favourites
+ * @property context Application context for WorkManager
  */
 @Singleton
-class FavouritesRepositoryImpl @Inject constructor(private val favouritesDao: FavouritesDao) : FavouritesRepository {
+class FavouritesRepositoryImpl @Inject constructor(
+    private val favouritesDao: FavouritesDao,
+    @ApplicationContext private val context: Context,
+) : FavouritesRepository {
 
     companion object {
         private const val TAG = "FavouritesRepositoryImpl"
+        private const val WIDGET_CACHE_WORKER_NAME = "cache_widget_images"
+    }
+
+    private val workManager: WorkManager by lazy {
+        WorkManager.getInstance(context)
     }
 
     /**
@@ -44,6 +60,7 @@ class FavouritesRepositoryImpl @Inject constructor(private val favouritesDao: Fa
                 ),
             )
             Log.i(TAG, "Added book to favourites: $bookId")
+            triggerWidgetUpdate()
         }
     }.subscribeOn(Schedulers.io())
 
@@ -57,6 +74,7 @@ class FavouritesRepositoryImpl @Inject constructor(private val favouritesDao: Fa
         kotlinx.coroutines.runBlocking {
             favouritesDao.deleteFavourite(bookId)
             Log.i(TAG, "Removed book from favourites: $bookId")
+            triggerWidgetUpdate()
         }
     }.subscribeOn(Schedulers.io())
 
@@ -71,6 +89,7 @@ class FavouritesRepositoryImpl @Inject constructor(private val favouritesDao: Fa
         kotlinx.coroutines.runBlocking {
             favouritesDao.toggleFavourite(bookId, System.currentTimeMillis())
             Log.i(TAG, "Toggled favourite status for book: $bookId")
+            triggerWidgetUpdate()
         }
     }.subscribeOn(Schedulers.io())
 
@@ -125,8 +144,39 @@ class FavouritesRepositoryImpl @Inject constructor(private val favouritesDao: Fa
         .subscribeOn(Schedulers.io())
         .doOnComplete {
             Log.i(TAG, "Cleared all favourites")
+            triggerWidgetUpdate()
         }
         .doOnError { error ->
             Log.e(TAG, "Failed to clear favourites", error)
         }
+
+    /**
+     * Triggers a background worker to cache book cover images for the favourites widget.
+     * This ensures the widget displays the most recent favourites with their cover images.
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun triggerWidgetUpdate() {
+        try {
+            // We need to use reflection to get the worker class since we can't directly
+            // reference feature module classes from core module
+            val workerClass = Class.forName(
+                "com.darach.openlibrarybooks.feature.widget.CacheWidgetImagesWorker",
+            ) as Class<out androidx.work.ListenableWorker>
+
+            val workRequest = androidx.work.OneTimeWorkRequest.Builder(workerClass).build()
+
+            workManager.enqueueUniqueWork(
+                WIDGET_CACHE_WORKER_NAME,
+                ExistingWorkPolicy.REPLACE,
+                workRequest,
+            )
+
+            Log.d(TAG, "Triggered widget image caching worker")
+        } catch (e: ClassNotFoundException) {
+            // Widget module might not be included in build configuration - this is expected
+            Log.d(TAG, "Widget worker not found, skipping widget update: ${e.message}")
+        } catch (e: IllegalArgumentException) {
+            Log.w(TAG, "Invalid worker class: ${e.message}")
+        }
+    }
 }

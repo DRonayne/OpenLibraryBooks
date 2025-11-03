@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Check for deeplink from widget
+        // Check for deeplink from widget or external source
         val deeplink = intent?.data?.toString()
 
         setContent {
