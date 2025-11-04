@@ -49,7 +49,7 @@ glance = "1.1.1"
 datastore = "1.1.7"
 
 # Image Loading
-coil = "3.0.4"
+coil = "3.3.0"
 
 # Firebase
 firebaseBom = "34.5.0"
